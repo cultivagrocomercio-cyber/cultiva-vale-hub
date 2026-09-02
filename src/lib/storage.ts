@@ -10,7 +10,7 @@ export async function uploadImage(userId: string, file: File, folder: string) {
   const { error } = await supabase.storage.from("marketplace").upload(path, file, {
     cacheControl: "3600",
     upsert: false,
-    contentType: file.type || undefined,
+    ...(file.type ? { contentType: file.type } : {}),
   });
   if (error) throw error;
   return path;
