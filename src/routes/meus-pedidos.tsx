@@ -45,8 +45,15 @@ function MyOrdersPage() {
 
   return (
     <div className="container-page py-8">
-      <h1 className="font-display text-3xl font-semibold">Meus pedidos</h1>
-      <p className="text-sm text-muted-foreground">Acompanhe o status, converse com o vendedor e avalie após a entrega.</p>
+      <div className="flex flex-wrap items-end justify-between gap-3">
+        <div>
+          <h1 className="font-display text-3xl font-semibold">Meus pedidos</h1>
+          <p className="text-sm text-muted-foreground">Acompanhe o status, converse com o vendedor e avalie após a entrega.</p>
+        </div>
+        <Button asChild variant="outline" size="sm" className="rounded-full">
+          <Link to="/perfil" search={{ aba: "favoritos" }}>Meu perfil e favoritos</Link>
+        </Button>
+      </div>
       <div className="mt-6 space-y-4">
         {loading || isPending ? (
           Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-40 rounded-2xl" />)
