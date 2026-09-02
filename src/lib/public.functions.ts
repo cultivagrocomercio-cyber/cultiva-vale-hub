@@ -137,47 +137,122 @@ export const getHomeData = createServerFn({ method: "GET" }).handler(async () =>
   return { featuredBoxes, recentProducts };
 });
 
-/** Busca de produtos com filtros. */
+function mapProduct(
+  p: {
+    id: string; name: string; description: string; price: number | string; stock: number;
+    category: "plantas" | "insumos" | "maquinas"; subcategory: string; images: string[]; created_at: string;
+    boxes: PublicProduct["box"];
+  },
+  urlMap: Record<string, string>,
+  resolve: (m: Record<string, string>, k: string | null | undefined) => string | null,
+): PublicProduct {
+  return {
+    id: p.id,
+    name: p.name,
+    description: p.description,
+    price: Number(p.price),
+    stock: p.stock,
+    category: p.category,
+    subcategory: p.subcategory,
+    imageUrls: p.images[0] ? [resolve(urlMap, p.images[0])].filter((x): x is string => !!x) : [],
+    createdAt: p.created_at,
+    box: p.boxes,
+  };
+}
+
+/** Busca de produtos e boxes com filtros de categoria, subcategoria e região. */
 export const searchProducts = createServerFn({ method: "GET" })
   .inputValidator((input: unknown) => searchSchema.parse(input ?? {}))
   .handler(async ({ data }) => {
     const { createPublicClient, signPaths, resolve } = await import("./supabase-public.server");
+    const { NEARBY_REGIONS } = await import("./categories");
     const sb = createPublicClient();
+    const limit = data.limit ?? 48;
 
-    let query = sb
-      .from("products")
-      .select("*, boxes!inner(id, name, slug, city, state, region)")
-      .eq("active", true)
-      .limit(data.limit ?? 48);
+    const buildProducts = (regions: string[] | null, max: number) => {
+      let query = sb
+        .from("products")
+        .select("*, boxes!inner(id, name, slug, city, state, region)")
+        .eq("active", true)
+        .limit(max);
+      if (data.q) query = query.ilike("name", `%${data.q}%`);
+      if (data.categoria) query = query.eq("category", data.categoria);
+      if (data.sub) query = query.eq("subcategory", data.sub);
+      if (regions) query = query.in("boxes.region", regions);
+      if (data.ordem === "menor") query = query.order("price", { ascending: true });
+      else if (data.ordem === "maior") query = query.order("price", { ascending: false });
+      else query = query.order("created_at", { ascending: false });
+      return query;
+    };
 
-    if (data.q) query = query.ilike("name", `%${data.q}%`);
-    if (data.categoria) query = query.eq("category", data.categoria);
-    if (data.sub) query = query.eq("subcategory", data.sub);
-    if (data.regiao) query = query.eq("boxes.region", data.regiao);
+    const nearbyRegions = data.regiao ? (NEARBY_REGIONS[data.regiao] ?? []) : [];
 
-    if (data.ordem === "menor") query = query.order("price", { ascending: true });
-    else if (data.ordem === "maior") query = query.order("price", { ascending: false });
-    else query = query.order("created_at", { ascending: false });
+    // Boxes: filtra por região e (se houver) por categoria via produtos ativos
+    let boxQuery = sb.from("boxes").select("*").order("created_at", { ascending: false }).limit(24);
+    if (data.regiao) boxQuery = boxQuery.eq("region", data.regiao);
+    if (data.q) boxQuery = boxQuery.or(`name.ilike.%${data.q}%,city.ilike.%${data.q}%`);
 
-    const { data: rows, error } = await query;
-    if (error) throw new Error(error.message);
+    const [mainRes, nearRes, boxRes, reviewsRes] = await Promise.all([
+      buildProducts(data.regiao ? [data.regiao] : null, limit),
+      nearbyRegions.length ? buildProducts(nearbyRegions, 12) : Promise.resolve({ data: [], error: null }),
+      boxQuery,
+      sb.from("reviews").select("box_id, rating"),
+    ]);
+    if (mainRes.error) throw new Error(mainRes.error.message);
+    if (nearRes.error) throw new Error(nearRes.error.message);
+    if (boxRes.error) throw new Error(boxRes.error.message);
 
-    const urlMap = await signPaths(sb, (rows ?? []).map((p) => p.images[0]));
+    const mainRows = mainRes.data ?? [];
+    const nearRows = nearRes.data ?? [];
+    let boxRows = boxRes.data ?? [];
 
-    const products: PublicProduct[] = (rows ?? []).map((p) => ({
-      id: p.id,
-      name: p.name,
-      description: p.description,
-      price: Number(p.price),
-      stock: p.stock,
-      category: p.category,
-      subcategory: p.subcategory,
-      imageUrls: p.images[0] ? [resolve(urlMap, p.images[0])].filter((x): x is string => !!x) : [],
-      createdAt: p.created_at,
-      box: p.boxes,
-    }));
+    // Contagem de produtos ativos por box (respeitando categoria/sub quando informados)
+    let countQuery = sb.from("products").select("box_id, category, subcategory").eq("active", true);
+    if (boxRows.length) countQuery = countQuery.in("box_id", boxRows.map((b) => b.id));
+    if (data.categoria) countQuery = countQuery.eq("category", data.categoria);
+    if (data.sub) countQuery = countQuery.eq("subcategory", data.sub);
+    const { data: countRows } = await countQuery;
+    const counts = new Map<string, number>();
+    for (const r of countRows ?? []) counts.set(r.box_id, (counts.get(r.box_id) ?? 0) + 1);
+    if (data.categoria || data.sub) boxRows = boxRows.filter((b) => (counts.get(b.id) ?? 0) > 0);
 
-    return { products };
+    const agg = aggregateReviews((reviewsRes.data ?? []) as ReviewRow[]);
+
+    const urlMap = await signPaths(sb, [
+      ...mainRows.map((p) => p.images[0]),
+      ...nearRows.map((p) => p.images[0]),
+      ...boxRows.map((b) => b.logo_url),
+      ...boxRows.map((b) => b.cover_url),
+    ]);
+
+    const boxes: PublicBox[] = boxRows.map((b) => {
+      const a = agg.get(b.id);
+      return {
+        id: b.id,
+        name: b.name,
+        slug: b.slug,
+        logoUrl: resolve(urlMap, b.logo_url),
+        coverUrl: resolve(urlMap, b.cover_url),
+        description: b.description,
+        story: b.story,
+        city: b.city,
+        state: b.state,
+        region: b.region,
+        whatsapp: b.whatsapp,
+        createdAt: b.created_at,
+        rating: a ? a.sum / a.n : null,
+        reviewCount: a?.n ?? 0,
+        productCount: counts.get(b.id) ?? 0,
+      };
+    });
+
+    const mainIds = new Set(mainRows.map((p) => p.id));
+    return {
+      products: mainRows.map((p) => mapProduct(p, urlMap, resolve)),
+      nearbyProducts: nearRows.filter((p) => !mainIds.has(p.id)).map((p) => mapProduct(p, urlMap, resolve)),
+      nearbyRegions,
+      boxes,
+    };
   });
 
 /** Página pública do box. */

@@ -76,6 +76,19 @@ export const REGIONS = [
   "Norte",
 ];
 
+/** Regiões vizinhas, em ordem de proximidade (usado em "próximos da região"). */
+export const NEARBY_REGIONS: Record<string, string[]> = {
+  "Vale do Ribeira": ["Litoral Sul de SP", "Interior de SP", "Grande São Paulo", "Sul do Brasil"],
+  "Grande São Paulo": ["Vale do Ribeira", "Interior de SP", "Litoral Sul de SP", "Sudeste (outros)"],
+  "Litoral Sul de SP": ["Vale do Ribeira", "Grande São Paulo", "Interior de SP", "Sul do Brasil"],
+  "Interior de SP": ["Vale do Ribeira", "Grande São Paulo", "Litoral Sul de SP", "Sudeste (outros)"],
+  "Sul do Brasil": ["Vale do Ribeira", "Litoral Sul de SP", "Interior de SP"],
+  "Sudeste (outros)": ["Grande São Paulo", "Interior de SP", "Centro-Oeste"],
+  "Centro-Oeste": ["Sudeste (outros)", "Interior de SP", "Norte"],
+  "Nordeste": ["Sudeste (outros)", "Norte", "Centro-Oeste"],
+  "Norte": ["Centro-Oeste", "Nordeste"],
+};
+
 export const STATES = [
   "AC","AL","AP","AM","BA","CE","DF","ES","GO","MA","MT","MS","MG","PA","PB","PR","PE","PI","RJ","RN","RS","RO","RR","SC","SP","SE","TO",
 ];
