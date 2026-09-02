@@ -14,6 +14,7 @@ interface AuthCtx {
   boxSlug: string | null;
   loading: boolean;
   isSeller: boolean;
+  isAdmin: boolean;
   refresh: () => Promise<void>;
   signOut: () => Promise<void>;
 }
@@ -80,6 +81,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       boxSlug: box?.slug ?? null,
       loading,
       isSeller: roles.includes("seller") || !!box,
+      isAdmin: roles.includes("admin"),
       refresh: async () => {
         if (session?.user) await loadExtras(session.user.id);
       },

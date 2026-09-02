@@ -89,6 +89,20 @@ function Dashboard({ box, userId }: { box: Box; userId: string }) {
         </Button>
       </div>
 
+      {box.status !== "aprovado" && (
+        <div className={`mt-5 rounded-2xl border p-4 text-sm ${box.status === "rejeitado" ? "border-destructive/40 bg-destructive/10" : "border-secondary/40 bg-sun/20"}`}>
+          <p className="font-semibold">
+            {box.status === "rejeitado" ? "Cadastro do box rejeitado" : "Box aguardando aprovação"}
+          </p>
+          <p className="mt-1 text-muted-foreground">
+            {box.status === "rejeitado"
+              ? "Seu box e produtos não aparecem no marketplace. Ajuste as informações abaixo e aguarde nova análise."
+              : "Você já pode cadastrar produtos, mas seu box só ficará visível para os compradores após a aprovação da equipe."}
+          </p>
+          {box.review_note && <p className="mt-2 rounded-lg bg-background/70 p-2 text-xs">Observação da equipe: {box.review_note}</p>}
+        </div>
+      )}
+
       <Tabs defaultValue="produtos" className="mt-6">
         <TabsList>
           <TabsTrigger value="produtos">Produtos</TabsTrigger>

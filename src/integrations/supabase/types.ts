@@ -25,8 +25,10 @@ export type Database = {
           name: string
           owner_id: string
           region: string
+          review_note: string
           slug: string
           state: string
+          status: Database["public"]["Enums"]["box_status"]
           story: string
           updated_at: string
           whatsapp: string | null
@@ -41,8 +43,10 @@ export type Database = {
           name: string
           owner_id: string
           region?: string
+          review_note?: string
           slug: string
           state?: string
+          status?: Database["public"]["Enums"]["box_status"]
           story?: string
           updated_at?: string
           whatsapp?: string | null
@@ -57,8 +61,10 @@ export type Database = {
           name?: string
           owner_id?: string
           region?: string
+          review_note?: string
           slug?: string
           state?: string
+          status?: Database["public"]["Enums"]["box_status"]
           story?: string
           updated_at?: string
           whatsapp?: string | null
@@ -345,6 +351,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      is_box_approved: { Args: { _box_id: string }; Returns: boolean }
       is_box_owner: { Args: { _box_id: string }; Returns: boolean }
       place_order: {
         Args: { _box_id: string; _items: Json; _notes: string }
@@ -353,6 +360,7 @@ export type Database = {
     }
     Enums: {
       app_role: "admin" | "seller" | "buyer"
+      box_status: "pendente" | "aprovado" | "rejeitado"
       order_status: "pendente" | "confirmado" | "entregue" | "cancelado"
       product_category: "plantas" | "insumos" | "maquinas"
     }
@@ -483,6 +491,7 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "seller", "buyer"],
+      box_status: ["pendente", "aprovado", "rejeitado"],
       order_status: ["pendente", "confirmado", "entregue", "cancelado"],
       product_category: ["plantas", "insumos", "maquinas"],
     },
