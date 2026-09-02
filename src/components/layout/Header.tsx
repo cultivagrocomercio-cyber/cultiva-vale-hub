@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
-import { LogOut, Menu, Package, Search, ShieldCheck, ShoppingBasket, Store, User } from "lucide-react";
+import { LogOut, Menu, Package, Search, ShieldCheck, ShoppingBasket, Store, User, UserRound } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Logo } from "@/components/Logo";
 import { Button } from "@/components/ui/button";
@@ -91,6 +91,9 @@ export function Header() {
               <nav className="flex flex-col gap-1 border-t pt-4">
                 {user ? (
                   <>
+                    <Link to="/perfil" onClick={() => setOpen(false)} className="flex items-center gap-3 rounded-lg px-2 py-2 text-sm font-semibold hover:bg-leaf-light">
+                      <UserRound className="h-4 w-4" /> Meu perfil
+                    </Link>
                     <Link to="/meus-pedidos" onClick={() => setOpen(false)} className="flex items-center gap-3 rounded-lg px-2 py-2 text-sm font-semibold hover:bg-leaf-light">
                       <Package className="h-4 w-4" /> Meus pedidos
                     </Link>
@@ -166,6 +169,9 @@ export function Header() {
               <DropdownMenuContent align="end" className="w-56">
                 <DropdownMenuLabel className="truncate text-xs text-muted-foreground">{user.email}</DropdownMenuLabel>
                 <DropdownMenuSeparator />
+                <DropdownMenuItem asChild>
+                  <Link to="/perfil"><UserRound className="mr-2 h-4 w-4" /> Meu perfil</Link>
+                </DropdownMenuItem>
                 <DropdownMenuItem asChild>
                   <Link to="/meus-pedidos"><Package className="mr-2 h-4 w-4" /> Meus pedidos</Link>
                 </DropdownMenuItem>

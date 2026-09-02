@@ -386,3 +386,48 @@ export const getProductById = createServerFn({ method: "GET" })
 
     return { product, relatedProducts };
   });
+
+/** Produtos e boxes por id (usado na lista de favoritos). */
+export const getPublicByIds = createServerFn({ method: "GET" })
+  .inputValidator((input: unknown) =>
+    z.object({ productIds: z.array(z.string().uuid()).max(100), boxIds: z.array(z.string().uuid()).max(100) }).parse(input),
+  )
+  .handler(async ({ data }) => {
+    const { createPublicClient, signPaths, resolve } = await import("./supabase-public.server");
+    const sb = createPublicClient();
+
+    const [prodRes, boxRes, reviewsRes, countRes] = await Promise.all([
+      data.productIds.length
+        ? sb.from("products").select("*, boxes!inner(id, name, slug, city, state, region)").in("id", data.productIds).eq("active", true)
+        : Promise.resolve({ data: [] as never[] }),
+      data.boxIds.length ? sb.from("boxes").select("*").in("id", data.boxIds) : Promise.resolve({ data: [] as never[] }),
+      data.boxIds.length ? sb.from("reviews").select("box_id, rating").in("box_id", data.boxIds) : Promise.resolve({ data: [] as never[] }),
+      data.boxIds.length ? sb.from("products").select("box_id").in("box_id", data.boxIds).eq("active", true) : Promise.resolve({ data: [] as never[] }),
+    ]);
+
+    const prodRows = (prodRes.data ?? []) as Parameters<typeof mapProduct>[0][];
+    type BoxRow = { id: string; name: string; slug: string; logo_url: string | null; cover_url: string | null; description: string; story: string; city: string; state: string; region: string; whatsapp: string | null; created_at: string };
+    const boxRows = (boxRes.data ?? []) as BoxRow[];
+    const agg = aggregateReviews((reviewsRes.data ?? []) as ReviewRow[]);
+    const counts = new Map<string, number>();
+    for (const r of (countRes.data ?? []) as { box_id: string }[]) counts.set(r.box_id, (counts.get(r.box_id) ?? 0) + 1);
+
+    const urlMap = await signPaths(sb, [
+      ...prodRows.map((p) => p.images[0]),
+      ...boxRows.map((b) => b.logo_url),
+      ...boxRows.map((b) => b.cover_url),
+    ]);
+
+    const boxes: PublicBox[] = boxRows.map((b) => {
+      const a = agg.get(b.id);
+      return {
+        id: b.id, name: b.name, slug: b.slug,
+        logoUrl: resolve(urlMap, b.logo_url), coverUrl: resolve(urlMap, b.cover_url),
+        description: b.description, story: b.story, city: b.city, state: b.state, region: b.region,
+        whatsapp: b.whatsapp, createdAt: b.created_at,
+        rating: a ? a.sum / a.n : null, reviewCount: a?.n ?? 0, productCount: counts.get(b.id) ?? 0,
+      };
+    });
+
+    return { products: prodRows.map((p) => mapProduct(p, urlMap, resolve)), boxes };
+  });

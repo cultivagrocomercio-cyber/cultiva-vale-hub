@@ -9,6 +9,7 @@ import { useCart } from "@/lib/cart";
 import { CategoryIcon, ProductCard } from "@/components/ProductCard";
 import { RatingStars } from "@/components/RatingStars";
 import { Button } from "@/components/ui/button";
+import { FavoriteButton } from "@/components/FavoriteButton";
 
 export const Route = createFileRoute("/produto/$id")({
   loader: async ({ context, params }) => {
@@ -107,6 +108,7 @@ function ProductPage() {
               <Button className="rounded-full" size="lg" variant="outline" onClick={() => addToCart(false)}>
                 <ShoppingBasket className="mr-2 h-4 w-4" /> Adicionar
               </Button>
+              <FavoriteButton productId={product.id} label={false} />
             </div>
           )}
 
