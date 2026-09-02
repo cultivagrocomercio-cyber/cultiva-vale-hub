@@ -29,7 +29,7 @@ export function FavoriteButton({ className, label = true, ...target }: Target & 
         if (error) throw error;
         return false;
       }
-      const row = target.productId ? { user_id: user!.id, product_id: id } : { user_id: user!.id, box_id: id };
+      const row = { user_id: user!.id, product_id: target.productId ?? null, box_id: target.boxId ?? null };
       const { error } = await supabase.from("favorites").insert(row);
       if (error) throw error;
       return true;
