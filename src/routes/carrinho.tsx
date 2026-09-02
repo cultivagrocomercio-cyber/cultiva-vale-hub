@@ -25,6 +25,7 @@ function CartPage() {
   const cart = useCart();
   const { user, loading } = useAuth();
   const navigate = useNavigate();
+  const qc = useQueryClient();
   const [notes, setNotes] = useState("");
   const [busy, setBusy] = useState(false);
 
