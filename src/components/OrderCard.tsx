@@ -34,7 +34,7 @@ export function OrderCard({
 }: {
   order: OrderWithItems;
   role: "buyer" | "seller";
-  counterpartName?: string;
+  counterpartName?: string | undefined;
 }) {
   const qc = useQueryClient();
   const [chatOpen, setChatOpen] = useState(false);
