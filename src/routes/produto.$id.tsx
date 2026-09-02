@@ -117,7 +117,7 @@ function ProductPage() {
               <span className="block font-semibold">{product.box.name}</span>
               <span className="flex items-center gap-1 text-xs text-muted-foreground"><MapPin className="h-3 w-3" /> {product.box.city}/{product.box.state} · {product.box.region}</span>
             </span>
-            <RatingStars value={product.box.rating} count={product.box.reviewCount} />
+            <RatingStars value={product.boxRating} count={product.boxReviewCount} />
           </Link>
 
           <div className="mt-6">
