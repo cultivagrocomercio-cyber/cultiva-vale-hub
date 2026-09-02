@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
-import { LogOut, Menu, Package, Search, ShoppingBasket, Store, User } from "lucide-react";
+import { LogOut, Menu, Package, Search, ShieldCheck, ShoppingBasket, Store, User } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Logo } from "@/components/Logo";
 import { Button } from "@/components/ui/button";
@@ -45,7 +45,7 @@ function SearchForm({ onDone }: { onDone?: () => void }) {
 }
 
 export function Header() {
-  const { user, profile, isSeller, boxId, loading, signOut } = useAuth();
+  const { user, profile, isSeller, isAdmin, boxId, loading, signOut } = useAuth();
   const { count } = useCart();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
@@ -97,6 +97,11 @@ export function Header() {
                     <Link to="/painel" onClick={() => setOpen(false)} className="flex items-center gap-3 rounded-lg px-2 py-2 text-sm font-semibold hover:bg-leaf-light">
                       <Store className="h-4 w-4" /> {boxId ? "Meu box" : "Criar meu box"}
                     </Link>
+                    {isAdmin && (
+                      <Link to="/admin" onClick={() => setOpen(false)} className="flex items-center gap-3 rounded-lg px-2 py-2 text-sm font-semibold hover:bg-leaf-light">
+                        <ShieldCheck className="h-4 w-4" /> Administração
+                      </Link>
+                    )}
                     <button onClick={handleSignOut} className="flex items-center gap-3 rounded-lg px-2 py-2 text-left text-sm font-semibold text-muted-foreground hover:bg-muted">
                       <LogOut className="h-4 w-4" /> Sair
                     </button>
@@ -167,6 +172,11 @@ export function Header() {
                 <DropdownMenuItem asChild>
                   <Link to="/painel"><Store className="mr-2 h-4 w-4" /> {boxId ? "Painel do meu box" : isSeller ? "Criar meu box" : "Quero vender"}</Link>
                 </DropdownMenuItem>
+                {isAdmin && (
+                  <DropdownMenuItem asChild>
+                    <Link to="/admin"><ShieldCheck className="mr-2 h-4 w-4" /> Administração</Link>
+                  </DropdownMenuItem>
+                )}
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={handleSignOut}><LogOut className="mr-2 h-4 w-4" /> Sair</DropdownMenuItem>
               </DropdownMenuContent>
