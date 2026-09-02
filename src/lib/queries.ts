@@ -8,11 +8,11 @@ export const homeQuery = queryOptions({
 });
 
 export interface SearchParams {
-  q?: string;
-  categoria?: "plantas" | "insumos" | "maquinas";
-  sub?: string;
-  regiao?: string;
-  ordem?: "recentes" | "menor" | "maior";
+  q?: string | undefined;
+  categoria?: "plantas" | "insumos" | "maquinas" | undefined;
+  sub?: string | undefined;
+  regiao?: string | undefined;
+  ordem?: "recentes" | "menor" | "maior" | undefined;
 }
 
 export const searchQuery = (params: SearchParams) =>

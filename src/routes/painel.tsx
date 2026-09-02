@@ -296,7 +296,7 @@ function ProductsTab({ box, userId }: { box: Box; userId: string }) {
   );
 }
 
-function ProductForm({ boxId, userId, product, onDone }: { boxId: string; userId: string; product?: Product; onDone: () => void }) {
+function ProductForm({ boxId, userId, product, onDone }: { boxId: string; userId: string; product?: Product | undefined; onDone: () => void }) {
   const [images, setImages] = useState<string[]>(product?.images ?? []);
   const [category, setCategory] = useState<CategorySlug>(product?.category ?? "plantas");
   const [sub, setSub] = useState(product?.subcategory ?? CATEGORY_MAP[product?.category ?? "plantas"].subcategories[0]!);

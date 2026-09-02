@@ -11,13 +11,16 @@ import { Button } from "@/components/ui/button";
 const ALL = "__all";
 
 export const Route = createFileRoute("/buscar")({
-  validateSearch: (s: Record<string, unknown>): SearchParams => ({
-    q: typeof s.q === "string" && s.q ? s.q.slice(0, 80) : undefined,
-    categoria: isCategorySlug(s.categoria) ? s.categoria : undefined,
-    sub: typeof s.sub === "string" && s.sub ? s.sub : undefined,
-    regiao: typeof s.regiao === "string" && s.regiao ? s.regiao : undefined,
-    ordem: s.ordem === "menor" || s.ordem === "maior" || s.ordem === "recentes" ? s.ordem : undefined,
-  }),
+  validateSearch: (s: Record<string, unknown>): SearchParams => {
+    const q = s["q"], categoria = s["categoria"], sub = s["sub"], regiao = s["regiao"], ordem = s["ordem"];
+    return {
+      q: typeof q === "string" && q ? q.slice(0, 80) : undefined,
+      categoria: isCategorySlug(categoria) ? categoria : undefined,
+      sub: typeof sub === "string" && sub ? sub : undefined,
+      regiao: typeof regiao === "string" && regiao ? regiao : undefined,
+      ordem: ordem === "menor" || ordem === "maior" || ordem === "recentes" ? ordem : undefined,
+    };
+  },
   head: ({ match }) => {
     const c = match.search.categoria ? CATEGORY_MAP[match.search.categoria].name : "Produtos";
     return {
