@@ -41,21 +41,16 @@ export function OrderCard({
 
   const setStatus = useMutation({
     mutationFn: async (status: Tables<"orders">["status"]) => {
+      // O estoque é baixado na finalização do pedido e devolvido automaticamente ao cancelar (gatilho no banco)
       const { error } = await supabase.from("orders").update({ status }).eq("id", order.id);
       if (error) throw error;
-      // Baixa de estoque quando o vendedor confirma
-      if (status === "confirmado" && role === "seller") {
-        for (const it of order.order_items) {
-          if (!it.product_id) continue;
-          const { data: p } = await supabase.from("products").select("stock").eq("id", it.product_id).maybeSingle();
-          if (p) await supabase.from("products").update({ stock: Math.max(0, p.stock - it.quantity) }).eq("id", it.product_id);
-        }
-      }
     },
     onSuccess: () => {
       toast.success("Status atualizado");
       qc.invalidateQueries({ queryKey: ["orders"] });
       qc.invalidateQueries({ queryKey: ["seller"] });
+      qc.invalidateQueries({ queryKey: ["home"] });
+      qc.invalidateQueries({ queryKey: ["search"] });
     },
     onError: (e) => toast.error(e.message),
   });

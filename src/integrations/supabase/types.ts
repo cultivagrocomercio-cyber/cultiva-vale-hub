@@ -346,6 +346,10 @@ export type Database = {
         Returns: boolean
       }
       is_box_owner: { Args: { _box_id: string }; Returns: boolean }
+      place_order: {
+        Args: { _box_id: string; _items: Json; _notes: string }
+        Returns: string
+      }
     }
     Enums: {
       app_role: "admin" | "seller" | "buyer"

@@ -401,6 +401,9 @@ function OrdersTab({ boxId }: { boxId: string }) {
       const names = new Map((profiles ?? []).map((p) => [p.id, p.full_name]));
       return { orders, names };
     },
+    // Novos pedidos aparecem no painel sem recarregar a página
+    refetchInterval: 15_000,
+    refetchOnWindowFocus: true,
   });
 
   if (isPending) return <Skeleton className="h-40 rounded-2xl" />;

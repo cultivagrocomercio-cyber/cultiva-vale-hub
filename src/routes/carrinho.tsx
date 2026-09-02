@@ -2,6 +2,7 @@ import { useState } from "react";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { Minus, Plus, ShoppingBasket, Trash2 } from "lucide-react";
 import { toast } from "sonner";
+import { useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useCart, type CartItem } from "@/lib/cart";
 import { useAuth } from "@/lib/auth";
@@ -25,6 +26,7 @@ function CartPage() {
   const cart = useCart();
   const { user, loading } = useAuth();
   const navigate = useNavigate();
+  const qc = useQueryClient();
   const [notes, setNotes] = useState("");
   const [busy, setBusy] = useState(false);
 
@@ -44,26 +46,20 @@ function CartPage() {
     try {
       for (const boxId of boxIds) {
         const items = groups[boxId]!;
-        const total = items.reduce((s, i) => s + i.price * i.quantity, 0);
-        const { data: order, error } = await supabase
-          .from("orders")
-          .insert({ buyer_id: user.id, box_id: boxId, total, notes })
-          .select("id")
-          .single();
+        const { error } = await supabase.rpc("place_order", {
+          _box_id: boxId,
+          _notes: notes,
+          _items: items.map((i) => ({ product_id: i.productId, product_name: i.name, quantity: i.quantity })),
+        });
         if (error) throw error;
-        const { error: e2 } = await supabase.from("order_items").insert(
-          items.map((i) => ({
-            order_id: order.id,
-            product_id: i.productId,
-            product_name: i.name,
-            quantity: i.quantity,
-            unit_price: i.price,
-            image_url: i.imageUrl,
-          })),
-        );
-        if (e2) throw e2;
       }
       cart.clear();
+      qc.invalidateQueries({ queryKey: ["orders"] });
+      qc.invalidateQueries({ queryKey: ["seller"] });
+      qc.invalidateQueries({ queryKey: ["home"] });
+      qc.invalidateQueries({ queryKey: ["search"] });
+      qc.invalidateQueries({ queryKey: ["box"] });
+      qc.invalidateQueries({ queryKey: ["product"] });
       toast.success(boxIds.length > 1 ? `${boxIds.length} pedidos enviados!` : "Pedido enviado ao vendedor!");
       navigate({ to: "/meus-pedidos" });
     } catch (e) {
