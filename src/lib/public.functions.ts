@@ -143,8 +143,8 @@ function mapProduct(
     category: "plantas" | "insumos" | "maquinas"; subcategory: string; images: string[]; created_at: string;
     boxes: PublicProduct["box"];
   },
-  urlMap: Map<string, string>,
-  resolve: (m: Map<string, string>, k: string | null | undefined) => string | null,
+  urlMap: Record<string, string>,
+  resolve: (m: Record<string, string>, k: string | null | undefined) => string | null,
 ): PublicProduct {
   return {
     id: p.id,
