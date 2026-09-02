@@ -6,6 +6,7 @@ import { ProductCard } from "@/components/ProductCard";
 import { RatingStars } from "@/components/RatingStars";
 import { LeafMark } from "@/components/Logo";
 import { Button } from "@/components/ui/button";
+import { FavoriteButton } from "@/components/FavoriteButton";
 
 export const Route = createFileRoute("/box/$slug")({
   loader: async ({ context, params }) => {
@@ -54,6 +55,8 @@ function BoxPage() {
               <span className="flex items-center gap-1"><Package className="h-3.5 w-3.5" /> {box.productCount} produtos</span>
             </div>
           </div>
+          <div className="flex flex-wrap gap-2">
+          <FavoriteButton boxId={box.id} className="h-10" />
           {box.whatsapp && (
             <Button asChild variant="outline" className="rounded-full">
               <a href={`https://wa.me/${box.whatsapp.replace(/\D/g, "")}`} target="_blank" rel="noreferrer">
@@ -61,6 +64,7 @@ function BoxPage() {
               </a>
             </Button>
           )}
+          </div>
         </div>
 
         {(box.description || box.story) && (
