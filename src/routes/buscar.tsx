@@ -1,9 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { SlidersHorizontal, X } from "lucide-react";
+import { MapPin, SlidersHorizontal, Store, X } from "lucide-react";
 import { searchQuery, type SearchParams } from "@/lib/queries";
 import { CATEGORIES, CATEGORY_MAP, REGIONS, isCategorySlug } from "@/lib/categories";
 import { CategoryIcon, ProductCard } from "@/components/ProductCard";
+import { BoxCard } from "@/components/BoxCard";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
@@ -108,22 +109,64 @@ function SearchPage() {
         </Select>
       </div>
 
-      <div className="mt-6">
+      <div className="mt-6 space-y-10">
         {isPending ? (
           <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
             {Array.from({ length: 8 }).map((_, i) => <Skeleton key={i} className="aspect-[3/4] rounded-2xl" />)}
           </div>
-        ) : data?.products.length ? (
-          <>
-            <p className="mb-3 text-sm text-muted-foreground">{data.products.length} {data.products.length === 1 ? "produto" : "produtos"}</p>
-            <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
-              {data.products.map((p) => <ProductCard key={p.id} product={p} />)}
-            </div>
-          </>
         ) : (
-          <div className="rounded-2xl border border-dashed p-12 text-center text-muted-foreground">
-            Nenhum produto encontrado com esses filtros.
-          </div>
+          <>
+            {data?.boxes.length ? (
+              <section>
+                <div className="mb-3 flex items-center gap-2">
+                  <Store className="h-4 w-4 text-secondary" />
+                  <h2 className="font-display text-xl font-semibold">
+                    {search.regiao ? `Boxes em ${search.regiao}` : "Boxes"}
+                  </h2>
+                  <span className="text-sm text-muted-foreground">({data.boxes.length})</span>
+                </div>
+                <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+                  {data.boxes.slice(0, 8).map((b) => <BoxCard key={b.id} box={b} />)}
+                </div>
+              </section>
+            ) : null}
+
+            <section>
+              <div className="mb-3 flex flex-wrap items-center gap-2">
+                <h2 className="font-display text-xl font-semibold">Produtos</h2>
+                {data?.products.length ? (
+                  <span className="text-sm text-muted-foreground">
+                    {data.products.length} {data.products.length === 1 ? "produto" : "produtos"}
+                    {search.regiao ? ` em ${search.regiao}` : ""}
+                  </span>
+                ) : null}
+              </div>
+              {data?.products.length ? (
+                <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+                  {data.products.map((p) => <ProductCard key={p.id} product={p} />)}
+                </div>
+              ) : (
+                <div className="rounded-2xl border border-dashed p-12 text-center text-muted-foreground">
+                  Nenhum produto encontrado com esses filtros.
+                </div>
+              )}
+            </section>
+
+            {data?.nearbyProducts.length ? (
+              <section>
+                <div className="mb-1 flex items-center gap-2">
+                  <MapPin className="h-4 w-4 text-secondary" />
+                  <h2 className="font-display text-xl font-semibold">Próximos da região</h2>
+                </div>
+                <p className="mb-3 text-sm text-muted-foreground">
+                  Produtores de regiões vizinhas: {data.nearbyRegions.join(", ")}.
+                </p>
+                <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+                  {data.nearbyProducts.map((p) => <ProductCard key={p.id} product={p} />)}
+                </div>
+              </section>
+            ) : null}
+          </>
         )}
       </div>
     </div>
