@@ -18,7 +18,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 export const Route = createFileRoute("/perfil")({
-  validateSearch: (s: Record<string, unknown>): { aba?: "pedidos" | "favoritos" | "dados" } => ({
+  validateSearch: (s: Record<string, unknown>): { aba?: "pedidos" | "favoritos" | "dados" | undefined } => ({
     aba: s["aba"] === "favoritos" || s["aba"] === "dados" ? s["aba"] : s["aba"] === "pedidos" ? "pedidos" : undefined,
   }),
   head: () => ({
