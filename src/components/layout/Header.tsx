@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
-import { LogOut, Menu, Package, Search, ShieldCheck, ShoppingBasket, Store, User } from "lucide-react";
+import { LogOut, Menu, Package, Search, ShieldCheck, ShoppingBasket, Store, User, UserRound } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Logo } from "@/components/Logo";
 import { Button } from "@/components/ui/button";
