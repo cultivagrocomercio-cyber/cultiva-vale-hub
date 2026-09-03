@@ -8,6 +8,7 @@ import type { Tables } from "@/integrations/supabase/types";
 import { useAuth } from "@/lib/auth";
 import { CATEGORIES, CATEGORY_MAP, REGIONS, STATES, formatPrice, slugify, type CategorySlug } from "@/lib/categories";
 import { ImageUploader } from "@/components/ImageUploader";
+import { BoxReviewChat } from "@/components/BoxReviewChat";
 import { StorageImage } from "@/components/StorageImage";
 import { OrderCard, type OrderWithItems } from "@/components/OrderCard";
 import { CategoryIcon } from "@/components/ProductCard";
@@ -100,6 +101,8 @@ function Dashboard({ box, userId }: { box: Box; userId: string }) {
               : "Você já pode cadastrar produtos, mas seu box só ficará visível para os compradores após a aprovação da equipe."}
           </p>
           {box.review_note && <p className="mt-2 rounded-lg bg-background/70 p-2 text-xs">Observação da equipe: {box.review_note}</p>}
+          <p className="mt-4 text-xs font-bold uppercase tracking-widest text-muted-foreground">Conversa com a equipe</p>
+          <BoxReviewChat className="mt-2" boxId={box.id} emptyText="Tire dúvidas com a equipe do Cultiva Vale sobre a análise do seu cadastro." />
         </div>
       )}
 
