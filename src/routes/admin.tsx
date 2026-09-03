@@ -1,12 +1,13 @@
 import { useEffect, useState } from "react";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Check, ExternalLink, Package, ShieldCheck, Store, X } from "lucide-react";
+import { Check, ExternalLink, MessageCircle, Package, ShieldCheck, Store, X } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import type { Tables } from "@/integrations/supabase/types";
 import { useAuth } from "@/lib/auth";
 import { CATEGORY_MAP, formatPrice } from "@/lib/categories";
+import { BoxReviewChat } from "@/components/BoxReviewChat";
 import { StorageImage } from "@/components/StorageImage";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -151,6 +152,7 @@ function BoxRow({ box }: { box: BoxWithOwner }) {
   const qc = useQueryClient();
   const [rejectOpen, setRejectOpen] = useState(false);
   const [note, setNote] = useState(box.review_note ?? "");
+  const [chatOpen, setChatOpen] = useState(box.status === "pendente");
 
   const countQ = useQuery({
     queryKey: ["admin", "box-products-count", box.id],
@@ -200,6 +202,9 @@ function BoxRow({ box }: { box: BoxWithOwner }) {
           <Button asChild size="sm" variant="ghost" className="rounded-full">
             <Link to="/box/$slug" params={{ slug: box.slug }}><ExternalLink className="mr-1.5 h-4 w-4" /> Ver</Link>
           </Button>
+          <Button size="sm" variant={chatOpen ? "secondary" : "outline"} className="rounded-full" onClick={() => setChatOpen((v) => !v)} aria-expanded={chatOpen}>
+            <MessageCircle className="mr-1.5 h-4 w-4" /> {chatOpen ? "Ocultar conversa" : "Conversar"}
+          </Button>
           {box.status !== "aprovado" && (
             <Button size="sm" className="rounded-full" disabled={setStatus.isPending} onClick={() => setStatus.mutate({ status: "aprovado" })}>
               <Check className="mr-1.5 h-4 w-4" /> Aprovar
@@ -212,6 +217,15 @@ function BoxRow({ box }: { box: BoxWithOwner }) {
           )}
         </div>
       </div>
+
+      {chatOpen && (
+        <div className="mt-4">
+          <p className="mb-2 text-xs font-bold uppercase tracking-widest text-muted-foreground">
+            Conversa com {box.owner?.full_name || "o vendedor"}
+          </p>
+          <BoxReviewChat boxId={box.id} emptyText="Envie uma mensagem ao vendedor para tirar dúvidas antes de aprovar ou rejeitar." />
+        </div>
+      )}
 
       <Dialog open={rejectOpen} onOpenChange={setRejectOpen}>
         <DialogContent>
