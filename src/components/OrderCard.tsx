@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import type { Tables } from "@/integrations/supabase/types";
 import { ORDER_STATUS_LABEL, formatPrice } from "@/lib/categories";
+import { formatRate, isPaidOrder } from "@/lib/commission";
 import { useAuth } from "@/lib/auth";
 import { StorageImage } from "./StorageImage";
 import { RatingStars } from "./RatingStars";
