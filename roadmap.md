@@ -1,4 +1,4 @@
 # Roadmap
 
 - [x] Chat admin <-> vendedor pendente no painel de administração
-- [ ] Substituir boxes demo por boxes reais do Vale do Ribeira (aguardando dados reais do usuário)
+- [x] Boxes demo removidos; produtores reais se cadastram pelo painel

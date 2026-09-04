@@ -1,0 +1,1 @@
+DELETE FROM public.boxes WHERE slug IN ('sitio-flor-do-vale', 'casa-do-adubo-ribeira', 'agromaquinas-juquia');
