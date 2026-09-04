@@ -1,12 +1,13 @@
 import { useEffect, useState } from "react";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { ExternalLink, Package, Pencil, Plus, Store, Trash2 } from "lucide-react";
+import { ExternalLink, Package, Pencil, Plus, Store, Trash2, Wallet } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import type { Tables } from "@/integrations/supabase/types";
 import { useAuth } from "@/lib/auth";
 import { CATEGORIES, CATEGORY_MAP, REGIONS, STATES, formatPrice, slugify, type CategorySlug } from "@/lib/categories";
+import { PLANS, formatRate, isPaidOrder } from "@/lib/commission";
 import { ImageUploader } from "@/components/ImageUploader";
 import { BoxReviewChat } from "@/components/BoxReviewChat";
 import { StorageImage } from "@/components/StorageImage";
@@ -110,10 +111,12 @@ function Dashboard({ box, userId }: { box: Box; userId: string }) {
         <TabsList>
           <TabsTrigger value="produtos">Produtos</TabsTrigger>
           <TabsTrigger value="pedidos">Pedidos</TabsTrigger>
+          <TabsTrigger value="ganhos">Meus ganhos</TabsTrigger>
           <TabsTrigger value="box">Meu box</TabsTrigger>
         </TabsList>
         <TabsContent value="produtos" className="mt-4"><ProductsTab box={box} userId={userId} /></TabsContent>
         <TabsContent value="pedidos" className="mt-4"><OrdersTab boxId={box.id} /></TabsContent>
+        <TabsContent value="ganhos" className="mt-4"><EarningsTab box={box} /></TabsContent>
         <TabsContent value="box" className="mt-4"><div className="max-w-2xl"><BoxForm userId={userId} box={box} /></div></TabsContent>
       </Tabs>
     </div>
@@ -397,6 +400,78 @@ function ProductForm({ boxId, userId, product, onDone }: { boxId: string; userId
       </div>
       <Button type="submit" className="w-full rounded-full" disabled={save.isPending}>{product ? "Salvar" : "Cadastrar produto"}</Button>
     </form>
+  );
+}
+
+/* ---------------- GANHOS ---------------- */
+
+function EarningsTab({ box }: { box: Box }) {
+  const plan = PLANS[box.plan];
+  const { data, isPending } = useQuery({
+    queryKey: ["seller", "earnings", box.id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("orders")
+        .select("status, total, commission_amount, net_amount")
+        .eq("box_id", box.id);
+      if (error) throw error;
+      const paid = data.filter((o) => isPaidOrder(o.status));
+      const sum = (rows: typeof data, key: "total" | "commission_amount" | "net_amount") =>
+        rows.reduce((acc, r) => acc + Number(r[key]), 0);
+      return {
+        count: paid.length,
+        pendingCount: data.length - paid.length,
+        pendingTotal: sum(data.filter((o) => o.status === "pendente"), "total"),
+        total: sum(paid, "total"),
+        commission: sum(paid, "commission_amount"),
+        net: sum(paid, "net_amount"),
+      };
+    },
+    refetchOnWindowFocus: true,
+  });
+
+  if (isPending || !data) return <Skeleton className="h-40 rounded-2xl" />;
+
+  return (
+    <div className="space-y-4">
+      <div className="rounded-2xl border bg-leaf-light/60 p-4 text-sm">
+        <p className="font-semibold">{plan.name} · comissão de {formatRate(plan.rate)}</p>
+        <p className="mt-1 text-muted-foreground">
+          A cada venda fechada e paga dentro do Cultiva Vale, a plataforma retém {formatRate(plan.rate)} do valor do pedido.
+          O restante é seu. Quer pagar menos? Fale com a equipe sobre os planos Intermediário (5%) e Premium (3%).
+        </p>
+      </div>
+
+      <div className="grid gap-3 sm:grid-cols-3">
+        <EarningCard label="Total de vendas" value={formatPrice(data.total)} hint={`${data.count} ${data.count === 1 ? "venda paga" : "vendas pagas"}`} />
+        <EarningCard label="Comissão da plataforma" value={formatPrice(data.commission)} hint={`Taxa do ${plan.name.toLowerCase()}`} />
+        <EarningCard label="Líquido a receber" value={formatPrice(data.net)} hint="Total das vendas menos a comissão" highlight />
+      </div>
+
+      {data.pendingCount > 0 && (
+        <p className="rounded-xl bg-sun-light px-4 py-3 text-sm">
+          {data.pendingCount} {data.pendingCount === 1 ? "pedido ainda não foi confirmado" : "pedidos ainda não foram confirmados"}
+          {data.pendingTotal > 0 && <> ({formatPrice(data.pendingTotal)} aguardando)</>}. A comissão só é calculada nas vendas fechadas e pagas.
+        </p>
+      )}
+
+      {data.count === 0 && (
+        <div className="flex flex-col items-center rounded-2xl border border-dashed p-12 text-center text-sm text-muted-foreground">
+          <Wallet className="h-8 w-8" />
+          <p className="mt-2">Nenhuma venda paga ainda. Confirme os pedidos recebidos para começar a somar seus ganhos.</p>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function EarningCard({ label, value, hint, highlight }: { label: string; value: string; hint: string; highlight?: boolean }) {
+  return (
+    <div className={`rounded-2xl border bg-card p-4 shadow-soft ${highlight ? "border-primary/40" : ""}`}>
+      <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground">{label}</p>
+      <p className={`mt-1 font-display text-2xl font-semibold ${highlight ? "text-primary" : ""}`}>{value}</p>
+      <p className="mt-0.5 text-xs text-muted-foreground">{hint}</p>
+    </div>
   );
 }
 
