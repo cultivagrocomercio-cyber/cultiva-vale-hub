@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import type { Tables } from "@/integrations/supabase/types";
 import { ORDER_STATUS_LABEL, formatPrice } from "@/lib/categories";
+import { formatRate, isPaidOrder } from "@/lib/commission";
 import { useAuth } from "@/lib/auth";
 import { StorageImage } from "./StorageImage";
 import { RatingStars } from "./RatingStars";
@@ -80,9 +81,21 @@ export function OrderCard({
         ))}
       </ul>
       <div className="flex flex-wrap items-center gap-2 border-t p-4">
-        <p className="font-display text-lg font-semibold">
-          Total: <span className="text-primary">{formatPrice(Number(order.total))}</span>
-        </p>
+        <div>
+          <p className="font-display text-lg font-semibold">
+            Total: <span className="text-primary">{formatPrice(Number(order.total))}</span>
+          </p>
+          {role === "seller" && (
+            <p className="mt-0.5 text-xs text-muted-foreground">
+              Comissão da plataforma ({formatRate(Number(order.commission_rate))}): {formatPrice(Number(order.commission_amount))} ·{" "}
+              <span className="font-semibold text-foreground">
+                Você recebe {formatPrice(Number(order.net_amount))}
+              </span>
+              {!isPaidOrder(order.status) && <span> (após confirmação da venda)</span>}
+            </p>
+          )}
+        </div>
+
         <div className="ml-auto flex flex-wrap gap-2">
           <Button size="sm" variant="outline" className="rounded-full" onClick={() => setChatOpen((v) => !v)}>
             <MessageCircle className="mr-1.5 h-4 w-4" /> Chat

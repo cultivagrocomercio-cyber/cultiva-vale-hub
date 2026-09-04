@@ -7,6 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import type { Tables } from "@/integrations/supabase/types";
 import { useAuth } from "@/lib/auth";
 import { CATEGORY_MAP, formatPrice } from "@/lib/categories";
+import { PLANS, formatRate, type BoxPlan } from "@/lib/commission";
 import { BoxReviewChat } from "@/components/BoxReviewChat";
 import { StorageImage } from "@/components/StorageImage";
 import { Button } from "@/components/ui/button";
@@ -18,6 +19,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 export const Route = createFileRoute("/admin")({
   head: () => ({
@@ -159,6 +161,19 @@ function BoxRow({ box }: { box: BoxWithOwner }) {
     queryFn: async () => (await supabase.from("products").select("id", { count: "exact", head: true }).eq("box_id", box.id)).count ?? 0,
   });
 
+  const setPlan = useMutation({
+    mutationFn: async (plan: BoxPlan) => {
+      const { error } = await supabase.from("boxes").update({ plan }).eq("id", box.id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success("Plano de comissão atualizado");
+      qc.invalidateQueries({ queryKey: ["admin"] });
+      qc.invalidateQueries({ queryKey: ["seller"] });
+    },
+    onError: (e) => toast.error(e.message),
+  });
+
   const setStatus = useMutation({
     mutationFn: async ({ status, review_note }: { status: BoxStatus; review_note?: string }) => {
       const { error } = await supabase.from("boxes").update({ status, review_note: review_note ?? "" }).eq("id", box.id);
@@ -185,6 +200,7 @@ function BoxRow({ box }: { box: BoxWithOwner }) {
           <div className="flex flex-wrap items-center gap-2">
             <h3 className="font-display text-lg font-semibold">{box.name}</h3>
             <Badge className={`rounded-full ${STATUS_STYLE[box.status]}`}>{STATUS_LABEL[box.status]}</Badge>
+            <Badge variant="outline" className="rounded-full">{PLANS[box.plan].name} · {formatRate(PLANS[box.plan].rate)}</Badge>
           </div>
           <p className="text-sm text-muted-foreground">
             {box.city}/{box.state} · {box.region} · {countQ.data ?? "…"} produto(s)
@@ -198,7 +214,15 @@ function BoxRow({ box }: { box: BoxWithOwner }) {
           {box.description && <p className="mt-2 line-clamp-2 text-sm">{box.description}</p>}
           {box.status === "rejeitado" && box.review_note && <p className="mt-2 text-xs text-destructive">Motivo: {box.review_note}</p>}
         </div>
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap items-center gap-2">
+          <Select value={box.plan} onValueChange={(v) => setPlan.mutate(v as BoxPlan)}>
+            <SelectTrigger className="h-9 w-[190px] rounded-full" aria-label="Plano de comissão"><SelectValue /></SelectTrigger>
+            <SelectContent>
+              {(Object.keys(PLANS) as BoxPlan[]).map((k) => (
+                <SelectItem key={k} value={k}>{PLANS[k].name} — {formatRate(PLANS[k].rate)}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
           <Button asChild size="sm" variant="ghost" className="rounded-full">
             <Link to="/box/$slug" params={{ slug: box.slug }}><ExternalLink className="mr-1.5 h-4 w-4" /> Ver</Link>
           </Button>
