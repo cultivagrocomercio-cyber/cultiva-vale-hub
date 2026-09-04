@@ -1,0 +1,1 @@
+REVOKE ALL ON FUNCTION public.protect_box_plan() FROM PUBLIC, anon, authenticated;
