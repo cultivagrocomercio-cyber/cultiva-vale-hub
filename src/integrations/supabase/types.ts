@@ -56,6 +56,7 @@ export type Database = {
           logo_url: string | null
           name: string
           owner_id: string
+          plan: Database["public"]["Enums"]["box_plan"]
           region: string
           review_note: string
           slug: string
@@ -74,6 +75,7 @@ export type Database = {
           logo_url?: string | null
           name: string
           owner_id: string
+          plan?: Database["public"]["Enums"]["box_plan"]
           region?: string
           review_note?: string
           slug: string
@@ -92,6 +94,7 @@ export type Database = {
           logo_url?: string | null
           name?: string
           owner_id?: string
+          plan?: Database["public"]["Enums"]["box_plan"]
           region?: string
           review_note?: string
           slug?: string
@@ -223,8 +226,11 @@ export type Database = {
         Row: {
           box_id: string
           buyer_id: string
+          commission_amount: number
+          commission_rate: number
           created_at: string
           id: string
+          net_amount: number
           notes: string
           status: Database["public"]["Enums"]["order_status"]
           total: number
@@ -233,8 +239,11 @@ export type Database = {
         Insert: {
           box_id: string
           buyer_id: string
+          commission_amount?: number
+          commission_rate?: number
           created_at?: string
           id?: string
+          net_amount?: number
           notes?: string
           status?: Database["public"]["Enums"]["order_status"]
           total?: number
@@ -243,8 +252,11 @@ export type Database = {
         Update: {
           box_id?: string
           buyer_id?: string
+          commission_amount?: number
+          commission_rate?: number
           created_at?: string
           id?: string
+          net_amount?: number
           notes?: string
           status?: Database["public"]["Enums"]["order_status"]
           total?: number
@@ -428,9 +440,14 @@ export type Database = {
         Args: { _box_id: string; _items: Json; _notes: string }
         Returns: string
       }
+      plan_commission_rate: {
+        Args: { _plan: Database["public"]["Enums"]["box_plan"] }
+        Returns: number
+      }
     }
     Enums: {
       app_role: "admin" | "seller" | "buyer"
+      box_plan: "basico" | "intermediario" | "premium"
       box_status: "pendente" | "aprovado" | "rejeitado"
       order_status: "pendente" | "confirmado" | "entregue" | "cancelado"
       product_category: "plantas" | "insumos" | "maquinas"
@@ -562,6 +579,7 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "seller", "buyer"],
+      box_plan: ["basico", "intermediario", "premium"],
       box_status: ["pendente", "aprovado", "rejeitado"],
       order_status: ["pendente", "confirmado", "entregue", "cancelado"],
       product_category: ["plantas", "insumos", "maquinas"],
