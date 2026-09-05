@@ -61,6 +61,8 @@ export type Database = {
           plan: Database["public"]["Enums"]["box_plan"]
           region: string
           review_note: string
+          reviewed_at: string | null
+          reviewed_by: string | null
           slug: string
           state: string
           status: Database["public"]["Enums"]["box_status"]
@@ -83,6 +85,8 @@ export type Database = {
           plan?: Database["public"]["Enums"]["box_plan"]
           region?: string
           review_note?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
           slug: string
           state?: string
           status?: Database["public"]["Enums"]["box_status"]
@@ -105,6 +109,8 @@ export type Database = {
           plan?: Database["public"]["Enums"]["box_plan"]
           region?: string
           review_note?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
           slug?: string
           state?: string
           status?: Database["public"]["Enums"]["box_status"]
@@ -185,6 +191,36 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      notifications: {
+        Row: {
+          body: string
+          created_at: string
+          id: string
+          link: string
+          read_at: string | null
+          title: string
+          user_id: string
+        }
+        Insert: {
+          body?: string
+          created_at?: string
+          id?: string
+          link?: string
+          read_at?: string | null
+          title: string
+          user_id: string
+        }
+        Update: {
+          body?: string
+          created_at?: string
+          id?: string
+          link?: string
+          read_at?: string | null
+          title?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       order_items: {
         Row: {
@@ -492,7 +528,7 @@ export type Database = {
     Enums: {
       app_role: "admin" | "seller" | "buyer"
       box_plan: "basico" | "intermediario" | "premium"
-      box_status: "pendente" | "aprovado" | "rejeitado"
+      box_status: "pendente" | "aprovado" | "rejeitado" | "suspenso"
       order_status:
         | "pendente_pagamento"
         | "pago_em_custodia"
@@ -631,7 +667,7 @@ export const Constants = {
     Enums: {
       app_role: ["admin", "seller", "buyer"],
       box_plan: ["basico", "intermediario", "premium"],
-      box_status: ["pendente", "aprovado", "rejeitado"],
+      box_status: ["pendente", "aprovado", "rejeitado", "suspenso"],
       order_status: [
         "pendente_pagamento",
         "pago_em_custodia",
