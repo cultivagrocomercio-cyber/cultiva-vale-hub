@@ -19,6 +19,8 @@ export const CATEGORIES: CategoryDef[] = [
       "Mudas",
       "Flores",
       "Árvores frutíferas",
+      "Plantas nativas",
+      "Juçara",
       "Jardinagem e paisagismo",
       "Suculentas e cactos",
       "Orquídeas",
@@ -46,6 +48,7 @@ export const CATEGORIES: CategoryDef[] = [
     description: "Equipamentos, ferramentas manuais, maquinário e acessórios.",
     subcategories: [
       "Ferramentas manuais",
+      "Motorizadas",
       "Equipamentos",
       "Maquinário pequeno e médio",
       "Tratores e implementos",
