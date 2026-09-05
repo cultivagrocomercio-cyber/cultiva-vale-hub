@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { CATEGORIES } from "@/lib/categories";
+import { SELLER_DRAFT_KEY } from "@/lib/seller-draft";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -25,7 +26,7 @@ export const Route = createFileRoute("/auth")({
 
 type Intent = "comprar" | "vender";
 
-export const SELLER_DRAFT_KEY = "cv_seller_draft";
+
 
 function AuthPage() {
   const { user, loading } = useAuth();
