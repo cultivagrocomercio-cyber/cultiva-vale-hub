@@ -7,9 +7,10 @@ export type ParsedCert =
 /** Lê um PKCS#12 (.pfx/.p12) e extrai os dados do certificado do titular. Nunca persiste a chave privada. */
 export function parsePfx(bytes: Uint8Array, password: string): ParsedCert {
   let p12: forge.pkcs12.Pkcs12Pfx;
+  let binary = "";
+  for (const b of bytes) binary += String.fromCharCode(b);
   try {
-    const der = forge.util.createBuffer(bytes);
-    const asn1 = forge.asn1.fromDer(der);
+    const asn1 = forge.asn1.fromDer(forge.util.createBuffer(binary, "raw"));
     p12 = forge.pkcs12.pkcs12FromAsn1(asn1, false, password);
   } catch (e) {
     const msg = e instanceof Error ? e.message : String(e);
@@ -19,13 +20,15 @@ export function parsePfx(bytes: Uint8Array, password: string): ParsedCert {
     return { ok: false, reason: "invalido", message: "Arquivo não reconhecido como certificado A1 (.pfx/.p12)." };
   }
 
-  const bags = p12.getBags({ bagType: forge.pki.oids.certBag })[forge.pki.oids.certBag] ?? [];
-  const certs = bags.map((b) => b.cert).filter((c): c is forge.pki.Certificate => !!c);
+  const certOid = forge.pki.oids["certBag"] as string;
+  const keyOid = forge.pki.oids["pkcs8ShroudedKeyBag"] as string;
+  const bags: forge.pkcs12.Bag[] = p12.getBags({ bagType: certOid })[certOid] ?? [];
+  const certs = bags.map((b: forge.pkcs12.Bag) => b.cert).filter((c): c is forge.pki.Certificate => !!c);
   if (certs.length === 0) return { ok: false, reason: "invalido", message: "O arquivo não contém certificado." };
 
   // Certificado do titular: preferir aquele que possui chave privada; senão o de menor validade (folha).
-  const keyBags = p12.getBags({ bagType: forge.pki.oids.pkcs8ShroudedKeyBag })[forge.pki.oids.pkcs8ShroudedKeyBag] ?? [];
-  let leaf = certs[0];
+  const keyBags: forge.pkcs12.Bag[] = p12.getBags({ bagType: keyOid })[keyOid] ?? [];
+  let leaf: forge.pki.Certificate = certs[0]!;
   const key = keyBags[0]?.key;
   if (key && "n" in key) {
     const match = certs.find((c) => {
