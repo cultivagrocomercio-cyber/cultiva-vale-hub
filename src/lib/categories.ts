@@ -19,6 +19,8 @@ export const CATEGORIES: CategoryDef[] = [
       "Mudas",
       "Flores",
       "Árvores frutíferas",
+      "Plantas nativas",
+      "Juçara",
       "Jardinagem e paisagismo",
       "Suculentas e cactos",
       "Orquídeas",
@@ -46,6 +48,7 @@ export const CATEGORIES: CategoryDef[] = [
     description: "Equipamentos, ferramentas manuais, maquinário e acessórios.",
     subcategories: [
       "Ferramentas manuais",
+      "Motorizadas",
       "Equipamentos",
       "Maquinário pequeno e médio",
       "Tratores e implementos",
@@ -75,6 +78,56 @@ export const REGIONS = [
   "Nordeste",
   "Norte",
 ];
+
+export const VALE_REGION = "Vale do Ribeira";
+
+/** Municípios do polo do Vale do Ribeira (filtro geográfico). */
+export const VALE_CITIES = [
+  "Registro",
+  "Pariquera-Açu",
+  "Sete Barras",
+  "Juquiá",
+  "Iguape",
+  "Jacupiranga",
+  "Cajati",
+  "Cananéia",
+  "Eldorado",
+  "Miracatu",
+  "Ilha Comprida",
+  "Itariri",
+  "Pedro de Toledo",
+  "Barra do Turvo",
+  "Iporanga",
+  "Apiaí",
+  "Ribeira",
+  "Itaóca",
+  "Tapiraí",
+  "Juquitiba",
+];
+
+export type LogisticsMode = "entrega_regional" | "retirada" | "envio_nacional";
+export const LOGISTICS: { value: LogisticsMode; label: string }[] = [
+  { value: "entrega_regional", label: "Entrega regional própria" },
+  { value: "retirada", label: "Retirada no local" },
+  { value: "envio_nacional", label: "Envio nacional" },
+];
+export const LOGISTICS_LABEL = Object.fromEntries(LOGISTICS.map((l) => [l.value, l.label])) as Record<LogisticsMode, string>;
+export function isLogisticsMode(v: unknown): v is LogisticsMode {
+  return v === "entrega_regional" || v === "retirada" || v === "envio_nacional";
+}
+
+export type SortOrder = "relevancia" | "menor" | "maior" | "avaliados" | "recentes";
+export const SORT_OPTIONS: { value: SortOrder; label: string }[] = [
+  { value: "relevancia", label: "Mais relevantes" },
+  { value: "menor", label: "Menor preço" },
+  { value: "maior", label: "Maior preço" },
+  { value: "avaliados", label: "Mais bem avaliados" },
+  { value: "recentes", label: "Lançamentos" },
+];
+export function isSortOrder(v: unknown): v is SortOrder {
+  return v === "relevancia" || v === "menor" || v === "maior" || v === "avaliados" || v === "recentes";
+}
+
 
 /** Regiões vizinhas, em ordem de proximidade (usado em "próximos da região"). */
 export const NEARBY_REGIONS: Record<string, string[]> = {
