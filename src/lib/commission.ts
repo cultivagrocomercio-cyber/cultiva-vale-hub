@@ -3,11 +3,47 @@ import type { Tables } from "@/integrations/supabase/types";
 export type BoxPlan = Tables<"boxes">["plan"];
 export type OrderStatus = Tables<"orders">["status"];
 
-export const PLANS: Record<BoxPlan, { name: string; rate: number; description: string }> = {
-  basico: { name: "Plano Básico", rate: 0.08, description: "Comissão de 8% por venda fechada no app." },
-  intermediario: { name: "Plano Intermediário", rate: 0.05, description: "Comissão de 5% por venda fechada no app." },
-  premium: { name: "Plano Premium", rate: 0.03, description: "Comissão de 3% por venda fechada no app." },
+export interface PlanInfo {
+  name: string;
+  short: string;
+  rate: number;
+  price: number;
+  /** Limite de produtos ativos (null = ilimitado). */
+  productLimit: number | null;
+  /** Peso na ordenação da busca (maior aparece primeiro). */
+  weight: 1 | 2 | 3;
+  featured: boolean;
+  badge: boolean;
+  description: string;
+  perks: string[];
+}
+
+export const PLANS: Record<BoxPlan, PlanInfo> = {
+  basico: {
+    name: "Plano Básico", short: "Básico", rate: 0.08, price: 0, productLimit: 10, weight: 1, featured: false, badge: false,
+    description: "Comissão de 8% por venda fechada no app.",
+    perks: ["Até 10 produtos ativos", "Comissão de 8% por venda", "Sem destaque na página inicial"],
+  },
+  intermediario: {
+    name: "Plano Intermediário", short: "Intermediário", rate: 0.05, price: 49.9, productLimit: null, weight: 2, featured: true, badge: false,
+    description: "Comissão de 5% por venda fechada no app.",
+    perks: ["Produtos ilimitados", "Comissão de 5% por venda", "Vitrine \"Boxes em destaque\"", "Prioridade média na busca"],
+  },
+  premium: {
+    name: "Plano Premium", short: "Premium", rate: 0.03, price: 99.9, productLimit: null, weight: 3, featured: true, badge: true,
+    description: "Comissão de 3% por venda fechada no app.",
+    perks: ["Produtos ilimitados", "Comissão de 3% por venda", "Topo dos resultados de busca", "Selo Vendedor Verificado / Premium", "Prioridade na vitrine de destaque"],
+  },
 };
+
+export const PLAN_ORDER: BoxPlan[] = ["basico", "intermediario", "premium"];
+
+export function planWeight(plan: BoxPlan | null | undefined) {
+  return plan ? PLANS[plan].weight : 1;
+}
+
+/** WhatsApp da plataforma para contratar/upgrade de plano (só dígitos, com DDI). Preencha com o número real. */
+export const PLATFORM_WHATSAPP = "";
 
 /** Chave PIX da plataforma exibida no checkout. Preencha com a chave real. */
 export const PLATFORM_PIX_KEY = "";

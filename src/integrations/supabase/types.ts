@@ -474,6 +474,10 @@ export type Database = {
         Args: { _plan: Database["public"]["Enums"]["box_plan"] }
         Returns: number
       }
+      plan_product_limit: {
+        Args: { _plan: Database["public"]["Enums"]["box_plan"] }
+        Returns: number
+      }
       release_due_orders: { Args: never; Returns: number }
     }
     Enums: {

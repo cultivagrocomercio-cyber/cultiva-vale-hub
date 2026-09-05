@@ -3,6 +3,7 @@ import { MapPin, Leaf, FlaskConical, Tractor } from "lucide-react";
 import type { PublicProduct } from "@/lib/public.functions";
 import { CATEGORY_MAP, formatPrice } from "@/lib/categories";
 import { cn } from "@/lib/utils";
+import { PlanBadge } from "./PlanBadge";
 
 export function CategoryIcon({ category, className }: { category: string; className?: string }) {
   const c = cn("h-4 w-4", className);
@@ -39,10 +40,12 @@ export function ProductCard({ product, className }: { product: PublicProduct; cl
           <CategoryIcon category={product.category} className="h-3 w-3" />
           {CATEGORY_MAP[product.category].short}
         </span>
-        {product.stock === 0 && (
+        {product.stock === 0 ? (
           <span className="absolute right-2 top-2 rounded-full bg-secondary px-2 py-0.5 text-[11px] font-bold text-secondary-foreground">
             Esgotado
           </span>
+        ) : (
+          <PlanBadge plan={product.box.plan} compact className="absolute right-2 top-2" />
         )}
       </div>
       <div className="flex flex-1 flex-col gap-1 p-3">
