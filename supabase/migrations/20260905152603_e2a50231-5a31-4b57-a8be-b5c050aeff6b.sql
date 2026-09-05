@@ -1,0 +1,9 @@
+REVOKE ALL ON FUNCTION public.protect_box_review_fields() FROM PUBLIC, anon, authenticated;
+REVOKE ALL ON FUNCTION public.sync_seller_on_box_status() FROM PUBLIC, anon, authenticated;
+REVOKE ALL ON FUNCTION public.notify_box_status_change() FROM PUBLIC, anon, authenticated;
+REVOKE ALL ON FUNCTION public.protect_box_plan() FROM PUBLIC, anon, authenticated;
+REVOKE ALL ON FUNCTION public.enforce_product_limit() FROM PUBLIC, anon, authenticated;
+REVOKE ALL ON FUNCTION public.restore_stock_on_cancel() FROM PUBLIC, anon, authenticated;
+REVOKE ALL ON FUNCTION public.validate_order_transition() FROM PUBLIC, anon, authenticated;
+REVOKE ALL ON FUNCTION public.handle_new_user() FROM PUBLIC, anon, authenticated;
+REVOKE ALL ON FUNCTION public.release_due_orders() FROM PUBLIC, anon, authenticated;
