@@ -4,6 +4,7 @@ import type { PublicProduct } from "@/lib/public.functions";
 import { CATEGORY_MAP, formatPrice } from "@/lib/categories";
 import { cn } from "@/lib/utils";
 import { PlanBadge } from "./PlanBadge";
+import { RatingStars } from "./RatingStars";
 
 export function CategoryIcon({ category, className }: { category: string; className?: string }) {
   const c = cn("h-4 w-4", className);
@@ -51,6 +52,7 @@ export function ProductCard({ product, className }: { product: PublicProduct; cl
       <div className="flex flex-1 flex-col gap-1 p-3">
         <p className="line-clamp-2 text-sm font-semibold leading-snug">{product.name}</p>
         <p className="text-xs text-muted-foreground">{product.subcategory}</p>
+        <RatingStars value={product.rating} count={product.reviewCount} />
         <p className="mt-auto pt-1 font-display text-lg font-semibold text-primary">{formatPrice(product.price)}</p>
         <p className="flex items-center gap-1 truncate text-xs text-muted-foreground">
           <MapPin className="h-3 w-3 shrink-0" />
