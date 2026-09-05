@@ -163,12 +163,49 @@ export type Database = {
           },
         ]
       }
+      fiscal_settings: {
+        Row: {
+          api_secret: string
+          api_token: string
+          created_at: string
+          environment: string
+          id: number
+          notes: string
+          provider: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          api_secret?: string
+          api_token?: string
+          created_at?: string
+          environment?: string
+          id?: number
+          notes?: string
+          provider?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          api_secret?: string
+          api_token?: string
+          created_at?: string
+          environment?: string
+          id?: number
+          notes?: string
+          provider?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: []
+      }
       invoices: {
         Row: {
           access_key: string
           box_id: string
           cfop: string
           created_at: string
+          danfe_path: string
           id: string
           issued_at: string | null
           number: string
@@ -178,12 +215,14 @@ export type Database = {
           series: string
           status: Database["public"]["Enums"]["nfe_status"]
           updated_at: string
+          xml_path: string
         }
         Insert: {
           access_key?: string
           box_id: string
           cfop?: string
           created_at?: string
+          danfe_path?: string
           id?: string
           issued_at?: string | null
           number?: string
@@ -193,12 +232,14 @@ export type Database = {
           series?: string
           status?: Database["public"]["Enums"]["nfe_status"]
           updated_at?: string
+          xml_path?: string
         }
         Update: {
           access_key?: string
           box_id?: string
           cfop?: string
           created_at?: string
+          danfe_path?: string
           id?: string
           issued_at?: string | null
           number?: string
@@ -208,6 +249,7 @@ export type Database = {
           series?: string
           status?: Database["public"]["Enums"]["nfe_status"]
           updated_at?: string
+          xml_path?: string
         }
         Relationships: [
           {
