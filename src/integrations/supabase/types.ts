@@ -65,6 +65,7 @@ export type Database = {
           reviewed_by: string | null
           slug: string
           state: string
+          state_registration: string
           status: Database["public"]["Enums"]["box_status"]
           story: string
           tax_id: string
@@ -89,6 +90,7 @@ export type Database = {
           reviewed_by?: string | null
           slug: string
           state?: string
+          state_registration?: string
           status?: Database["public"]["Enums"]["box_status"]
           story?: string
           tax_id?: string
@@ -113,6 +115,7 @@ export type Database = {
           reviewed_by?: string | null
           slug?: string
           state?: string
+          state_registration?: string
           status?: Database["public"]["Enums"]["box_status"]
           story?: string
           tax_id?: string
@@ -511,6 +514,9 @@ export type Database = {
       }
       is_box_approved: { Args: { _box_id: string }; Returns: boolean }
       is_box_owner: { Args: { _box_id: string }; Returns: boolean }
+      is_valid_cnpj: { Args: { _v: string }; Returns: boolean }
+      is_valid_cpf: { Args: { _v: string }; Returns: boolean }
+      is_valid_ie: { Args: { _uf: string; _v: string }; Returns: boolean }
       place_order: {
         Args: { _box_id: string; _items: Json; _notes: string }
         Returns: string
