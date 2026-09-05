@@ -14,6 +14,7 @@ import { ImageUploader } from "@/components/ImageUploader";
 import { BoxReviewChat } from "@/components/BoxReviewChat";
 import { PlanCard } from "@/components/PlanCard";
 import { InvoicesTab } from "@/components/InvoicesTab";
+import { CertificateManager } from "@/components/CertificateManager";
 import { StorageImage } from "@/components/StorageImage";
 import { OrderCard, type OrderWithItems } from "@/components/OrderCard";
 import { CategoryIcon } from "@/components/ProductCard";
@@ -145,12 +146,14 @@ function Dashboard({ box, userId }: { box: Box; userId: string }) {
           <TabsTrigger value="pedidos">Pedidos</TabsTrigger>
           <TabsTrigger value="ganhos">Meus ganhos</TabsTrigger>
           <TabsTrigger value="notas">Notas fiscais</TabsTrigger>
+          <TabsTrigger value="certificado">Certificado A1</TabsTrigger>
           <TabsTrigger value="box">Meu box</TabsTrigger>
         </TabsList>
         <TabsContent value="produtos" className="mt-4"><ProductsTab box={box} userId={userId} /></TabsContent>
         <TabsContent value="pedidos" className="mt-4"><OrdersTab boxId={box.id} /></TabsContent>
         <TabsContent value="ganhos" className="mt-4"><EarningsTab box={box} /></TabsContent>
         <TabsContent value="notas" className="mt-4"><InvoicesTab box={box} /></TabsContent>
+        <TabsContent value="certificado" className="mt-4"><CertificateManager boxId={box.id} /></TabsContent>
         <TabsContent value="box" className="mt-4"><div className="max-w-2xl"><BoxForm userId={userId} box={box} /></div></TabsContent>
       </Tabs>
     </div>

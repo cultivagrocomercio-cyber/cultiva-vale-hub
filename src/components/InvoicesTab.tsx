@@ -1,6 +1,7 @@
 import { useRef, useState } from "react";
+import { Link } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { FileText, Send, Download, CheckCircle2, XCircle, Eye, Upload } from "lucide-react";
+import { FileText, Send, Download, CheckCircle2, XCircle, Eye, Upload, ShieldAlert } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import type { Tables } from "@/integrations/supabase/types";
@@ -9,6 +10,7 @@ import { NFE_ELIGIBLE_ORDER_STATUS, NFE_STATUS_LABEL, NFE_STATUS_STYLE, buildNfe
 import { formatTaxId } from "@/lib/fiscal";
 import { useAuth } from "@/lib/auth";
 import { uploadImage } from "@/lib/storage";
+import { CERT_MISSING_MESSAGE, certDaysLeft, certIsUsable, useBoxCertificate } from "@/lib/certificate";
 import { InvoiceDownloads } from "@/components/InvoiceDownloads";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -63,7 +65,11 @@ export function InvoicesTab({ box }: { box: Box }) {
     onError: (e) => toast.error(e.message),
   });
 
+  const certQ = useBoxCertificate(box.id);
+  const certOk = certIsUsable(certQ.data);
+  const certDays = certDaysLeft(certQ.data);
   const sellerReady = !!box.tax_id && !!box.address;
+  const canEmit = sellerReady && certOk && !certQ.isPending;
   const orders = q.data ?? [];
   const counts = {
     pend: orders.filter((o) => !o.invoices || o.invoices.status === "pendente_emissao").length,
@@ -83,6 +89,15 @@ export function InvoicesTab({ box }: { box: Box }) {
         <p className="rounded-xl border border-destructive/40 bg-destructive/10 p-3 text-sm text-destructive">
           Complete os dados fiscais do box (CPF/CNPJ, Inscrição Estadual e endereço) na aba "Meu box" antes de emitir notas.
         </p>
+      )}
+      {!certQ.isPending && !certOk && (
+        <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-destructive/40 bg-destructive/10 p-3 text-sm text-destructive">
+          <p className="flex items-center gap-2 font-semibold"><ShieldAlert className="h-4 w-4 shrink-0" /> {CERT_MISSING_MESSAGE}</p>
+          <Button asChild size="sm" variant="outline" className="rounded-full"><Link to="/painel-vendedor/certificado">Enviar certificado</Link></Button>
+        </div>
+      )}
+      {certOk && certDays !== null && certDays <= 30 && (
+        <p className="rounded-xl border border-sun/60 bg-sun/15 p-3 text-sm">Seu certificado digital vence em {certDays} dia{certDays === 1 ? "" : "s"}. <Link to="/painel-vendedor/certificado" className="font-semibold underline">Renovar agora</Link>.</p>
       )}
       <p className="rounded-xl border bg-muted/30 p-3 text-xs text-muted-foreground">
         A nota é montada automaticamente com os dados do seu box (emitente) e do comprador (destinatário). Transmita o arquivo pelo seu emissor/contador e registre aqui o retorno da SEFAZ (chave de acesso e número) para concluir.
@@ -134,7 +149,7 @@ export function InvoicesTab({ box }: { box: Box }) {
                       <td className="px-4 py-3">
                         <div className="flex flex-wrap justify-end gap-1.5">
                           {(st === "pendente_emissao" || st === "rejeitada") && (
-                            <Button size="sm" className="rounded-full" disabled={!sellerReady || !buyer.tax_id || emit.isPending} onClick={() => emit.mutate(o)}>
+                            <Button size="sm" className="rounded-full" title={!certOk ? CERT_MISSING_MESSAGE : undefined} disabled={!canEmit || !buyer.tax_id || emit.isPending} onClick={() => emit.mutate(o)}>
                               <Send className="mr-1.5 h-3.5 w-3.5" /> {st === "rejeitada" ? "Reemitir NF-e" : "Emitir NF-e"}
                             </Button>
                           )}
