@@ -80,7 +80,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       boxId: box?.id ?? null,
       boxSlug: box?.slug ?? null,
       loading,
-      isSeller: roles.includes("seller") || !!box,
+      isSeller: roles.includes("seller"),
       isAdmin: roles.includes("admin"),
       refresh: async () => {
         if (session?.user) await loadExtras(session.user.id);

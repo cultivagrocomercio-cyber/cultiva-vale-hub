@@ -154,11 +154,10 @@ function BoxForm({ userId, box }: { userId: string; box?: Box }) {
         const slug = `${slugify(name)}-${Math.random().toString(36).slice(2, 6)}`;
         const { error } = await supabase.from("boxes").insert({ ...payload, slug, owner_id: userId });
         if (error) throw error;
-        await supabase.from("user_roles").insert({ user_id: userId, role: "seller" });
       }
     },
     onSuccess: async () => {
-      toast.success(box ? "Box atualizado" : "Box criado! Agora cadastre seus produtos.");
+      toast.success(box ? "Box atualizado" : "Box criado! Enviamos para análise. Você poderá vender após a aprovação da equipe.");
       await refresh();
       qc.invalidateQueries({ queryKey: ["seller"] });
       qc.invalidateQueries({ queryKey: ["home"] });

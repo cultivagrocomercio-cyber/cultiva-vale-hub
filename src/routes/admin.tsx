@@ -50,8 +50,10 @@ function AdminPage() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (!loading && !user) navigate({ to: "/auth", replace: true });
-  }, [user, loading, navigate]);
+    if (loading) return;
+    if (!user) navigate({ to: "/auth", replace: true });
+    else if (!isAdmin) navigate({ to: "/", replace: true });
+  }, [user, loading, isAdmin, navigate]);
 
   if (loading || !user) return <div className="container-page py-8"><Skeleton className="h-64 rounded-2xl" /></div>;
 

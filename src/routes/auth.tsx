@@ -13,7 +13,7 @@ export const Route = createFileRoute("/auth")({
   head: () => ({
     meta: [
       { title: "Entrar ou cadastrar — Cultiva Vale" },
-      { name: "description", content: "Crie sua conta de comprador ou vendedor no Cultiva Vale Marketplace." },
+      { name: "description", content: "Crie sua conta de comprador no Cultiva Vale Marketplace. Vendedores são aprovados pela equipe." },
       { property: "og:title", content: "Entrar — Cultiva Vale" },
       { property: "og:description", content: "Acesse sua conta ou cadastre-se." },
     ],
@@ -25,7 +25,6 @@ function AuthPage() {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
   const [busy, setBusy] = useState(false);
-  const [accountType, setAccountType] = useState<"buyer" | "seller">("buyer");
 
   useEffect(() => {
     if (!loading && user) navigate({ to: "/", replace: true });
@@ -53,7 +52,7 @@ function AuthPage() {
       password: String(fd.get("password")),
       options: {
         emailRedirectTo: `${window.location.origin}/`,
-        data: { full_name: String(fd.get("full_name")), account_type: accountType },
+        data: { full_name: String(fd.get("full_name")) },
       },
     });
     setBusy(false);
@@ -62,8 +61,8 @@ function AuthPage() {
       return;
     }
     if (data.session) {
-      toast.success("Conta criada!");
-      navigate({ to: accountType === "seller" ? "/painel" : "/" });
+      toast.success("Conta criada! Bem-vindo ao Cultiva Vale.");
+      navigate({ to: "/", replace: true });
     } else {
       toast.success("Conta criada! Verifique seu e-mail para confirmar o cadastro.");
     }
@@ -75,7 +74,7 @@ function AuthPage() {
         <div className="mb-6 flex flex-col items-center text-center">
           <LeafMark className="h-12 w-12" />
           <h1 className="mt-3 font-display text-2xl font-semibold">Bem-vindo ao Cultiva Vale</h1>
-          <p className="text-sm text-muted-foreground">Compre ou venda plantas, insumos e máquinas.</p>
+          <p className="text-sm text-muted-foreground">Compre plantas, insumos e máquinas direto do produtor.</p>
         </div>
         <Tabs defaultValue="entrar">
           <TabsList className="grid w-full grid-cols-2">
@@ -97,19 +96,9 @@ function AuthPage() {
           </TabsContent>
           <TabsContent value="cadastrar">
             <form onSubmit={signUp} className="mt-4 space-y-4">
-              <div className="grid grid-cols-2 gap-2">
-                {(["buyer", "seller"] as const).map((t) => (
-                  <button
-                    key={t}
-                    type="button"
-                    onClick={() => setAccountType(t)}
-                    className={`rounded-xl border p-3 text-left text-sm transition-colors ${accountType === t ? "border-primary bg-leaf-light" : "hover:bg-muted"}`}
-                  >
-                    <span className="block font-bold">{t === "buyer" ? "Quero comprar" : "Quero vender"}</span>
-                    <span className="text-xs text-muted-foreground">{t === "buyer" ? "Comprador" : "Produtor ou lojista"}</span>
-                  </button>
-                ))}
-              </div>
+              <p className="rounded-xl bg-leaf-light p-3 text-xs text-primary">
+                Toda conta começa como <strong>cliente</strong>. Quer vender? Crie seu box pelo painel e nossa equipe aprova antes de ativar a venda.
+              </p>
               <div className="space-y-1.5">
                 <Label htmlFor="su-name">Nome completo</Label>
                 <Input id="su-name" name="full_name" required minLength={2} maxLength={80} />
