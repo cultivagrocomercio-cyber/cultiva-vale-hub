@@ -34,7 +34,7 @@ export const Route = createFileRoute("/perfil")({
 });
 
 function ProfilePage() {
-  const { user, profile, loading, refresh } = useAuth();
+  const { user, profile, loading, refresh, isSeller, boxId } = useAuth();
   const navigate = useNavigate();
   const { aba } = Route.useSearch();
 
