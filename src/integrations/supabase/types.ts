@@ -397,11 +397,45 @@ export type Database = {
           },
         ]
       }
+      notification_preferences: {
+        Row: {
+          created_at: string
+          email_invoices: boolean
+          email_orders: boolean
+          email_reviews: boolean
+          email_stock_finance: boolean
+          updated_at: string
+          user_id: string
+          whatsapp_updates: boolean
+        }
+        Insert: {
+          created_at?: string
+          email_invoices?: boolean
+          email_orders?: boolean
+          email_reviews?: boolean
+          email_stock_finance?: boolean
+          updated_at?: string
+          user_id: string
+          whatsapp_updates?: boolean
+        }
+        Update: {
+          created_at?: string
+          email_invoices?: boolean
+          email_orders?: boolean
+          email_reviews?: boolean
+          email_stock_finance?: boolean
+          updated_at?: string
+          user_id?: string
+          whatsapp_updates?: boolean
+        }
+        Relationships: []
+      }
       notifications: {
         Row: {
           body: string
           created_at: string
           id: string
+          kind: string
           link: string
           read_at: string | null
           title: string
@@ -411,6 +445,7 @@ export type Database = {
           body?: string
           created_at?: string
           id?: string
+          kind?: string
           link?: string
           read_at?: string | null
           title: string
@@ -420,6 +455,7 @@ export type Database = {
           body?: string
           created_at?: string
           id?: string
+          kind?: string
           link?: string
           read_at?: string | null
           title?: string
@@ -631,9 +667,11 @@ export type Database = {
           id: string
           legal_name: string
           phone: string | null
+          privacy_accepted_at: string | null
           state: string | null
           state_registration: string
           tax_id: string
+          terms_accepted_at: string | null
           updated_at: string
         }
         Insert: {
@@ -646,9 +684,11 @@ export type Database = {
           id: string
           legal_name?: string
           phone?: string | null
+          privacy_accepted_at?: string | null
           state?: string | null
           state_registration?: string
           tax_id?: string
+          terms_accepted_at?: string | null
           updated_at?: string
         }
         Update: {
@@ -661,9 +701,11 @@ export type Database = {
           id?: string
           legal_name?: string
           phone?: string | null
+          privacy_accepted_at?: string | null
           state?: string | null
           state_registration?: string
           tax_id?: string
+          terms_accepted_at?: string | null
           updated_at?: string
         }
         Relationships: []
@@ -784,6 +826,16 @@ export type Database = {
       plan_product_limit: {
         Args: { _plan: Database["public"]["Enums"]["box_plan"] }
         Returns: number
+      }
+      push_notification: {
+        Args: {
+          _body: string
+          _kind: string
+          _link: string
+          _title: string
+          _user: string
+        }
+        Returns: undefined
       }
       recompute_ratings: {
         Args: { _box_id: string; _order_id: string }
