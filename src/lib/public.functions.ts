@@ -458,7 +458,7 @@ export const getPublicByIds = createServerFn({ method: "GET" })
         logoUrl: resolve(urlMap, b.logo_url), coverUrl: resolve(urlMap, b.cover_url),
         description: b.description, story: b.story, city: b.city, state: b.state, region: b.region,
         whatsapp: b.whatsapp, plan: b.plan, createdAt: b.created_at,
-        rating: num(b.rating_avg), reviewCount: b.rating_count, productCount: counts.get(b.id) ?? 0,
+        logistics: b.logistics ?? [], rating: num(b.rating_avg), reviewCount: b.rating_count, productCount: counts.get(b.id) ?? 0,
       };
     });
 
