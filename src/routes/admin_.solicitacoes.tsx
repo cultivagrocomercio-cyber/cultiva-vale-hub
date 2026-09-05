@@ -242,7 +242,7 @@ function Section({ title, children }: { title: string; children: React.ReactNode
   );
 }
 
-function Field({ label, value, mono, icon }: { label: string; value?: string | null; mono?: boolean; icon?: React.ReactNode }) {
+function Field({ label, value, mono, icon }: { label: string; value?: string | null | undefined; mono?: boolean; icon?: React.ReactNode }) {
   return (
     <div className="mb-1.5 text-sm">
       <span className="text-xs text-muted-foreground">{label}: </span>
