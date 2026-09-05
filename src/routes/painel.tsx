@@ -170,6 +170,9 @@ function BoxForm({ userId, box }: { userId: string; box?: Box }) {
   const [cover, setCover] = useState<string[]>(box?.cover_url ? [box.cover_url] : []);
   const [state, setState] = useState(box?.state ?? "SP");
   const [region, setRegion] = useState(box?.region ?? REGIONS[0]!);
+  const [logistics, setLogistics] = useState<LogisticsMode[]>(
+    (box?.logistics ?? ["retirada"]).filter(isLogisticsMode),
+  );
   const [taxId, setTaxId] = useState(formatTaxId(box?.tax_id || draft?.tax_id || ""));
   const [ie, setIe] = useState(box?.state_registration ?? "");
   const [mainCategory, setMainCategory] = useState<CategorySlug | "">(
@@ -182,6 +185,7 @@ function BoxForm({ userId, box }: { userId: string; box?: Box }) {
       if (!mainCategory) throw new Error("Selecione a categoria de atuação");
       const fiscalErrors = validateFiscal({ category: mainCategory, taxId, stateRegistration: ie, uf: state });
       if (fiscalErrors.length) throw new Error(fiscalErrors[0]);
+      if (!logistics.length) throw new Error("Selecione ao menos uma modalidade de logística");
       const payload = {
         name,
         description: String(fd.get("description")).trim(),
@@ -190,6 +194,7 @@ function BoxForm({ userId, box }: { userId: string; box?: Box }) {
         state,
         region,
         whatsapp: String(fd.get("whatsapp")).trim() || null,
+        logistics,
         tax_id: onlyDigits(taxId),
         state_registration: onlyDigits(ie),
         address: String(fd.get("address")).trim(),
@@ -324,6 +329,23 @@ function BoxForm({ userId, box }: { userId: string; box?: Box }) {
             <SelectContent>{REGIONS.map((r) => <SelectItem key={r} value={r}>{r}</SelectItem>)}</SelectContent>
           </Select>
         </div>
+      </div>
+      <div className="space-y-1.5">
+        <Label>Modalidades de logística</Label>
+        <div className="flex flex-wrap gap-4">
+          {LOGISTICS.map((l) => (
+            <label key={l.value} className="flex items-center gap-2 text-sm">
+              <Checkbox
+                checked={logistics.includes(l.value)}
+                onCheckedChange={(v) =>
+                  setLogistics((cur) => (v ? Array.from(new Set([...cur, l.value])) : cur.filter((x) => x !== l.value)))
+                }
+              />
+              {l.label}
+            </label>
+          ))}
+        </div>
+        <p className="text-xs text-muted-foreground">Usado no filtro de busca do comprador. Frete e retirada continuam combinados pelo chat.</p>
       </div>
       <div className="space-y-1.5">
         <Label htmlFor="b-wa">WhatsApp (opcional)</Label>
