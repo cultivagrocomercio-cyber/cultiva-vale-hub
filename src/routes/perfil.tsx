@@ -96,7 +96,7 @@ function ProfilePage() {
         </div>
         {!isSeller && (
           <Button asChild variant={boxId ? "outline" : "secondary"} className="w-full rounded-full sm:w-auto">
-            <Link to="/painel"><Store className="mr-2 h-4 w-4" /> {boxId ? "Habilitação em análise" : "Tornar-se um Produtor/Vendedor"}</Link>
+            <Link to="/painel"><Store className="mr-2 h-4 w-4" /> {boxId ? "Minha habilitação comercial" : "Tornar-se um Produtor/Vendedor"}</Link>
           </Button>
         )}
       </div>

@@ -99,7 +99,7 @@ export function Header() {
                       <Package className="h-4 w-4" /> Meus pedidos
                     </Link>
                     <Link to="/painel" onClick={() => setOpen(false)} className="flex items-center gap-3 rounded-lg px-2 py-2 text-sm font-semibold hover:bg-leaf-light">
-                      <Store className="h-4 w-4" /> {boxId ? (isSeller ? "Meu box" : "Habilitação em análise") : "Tornar-se um Produtor/Vendedor"}
+                      <Store className="h-4 w-4" /> {boxId ? (isSeller ? "Meu box" : "Minha habilitação") : "Tornar-se um Produtor/Vendedor"}
                     </Link>
                     {isAdmin && (
                       <Link to="/admin" onClick={() => setOpen(false)} className="flex items-center gap-3 rounded-lg px-2 py-2 text-sm font-semibold hover:bg-leaf-light">
@@ -179,7 +179,7 @@ export function Header() {
                   <Link to="/meus-pedidos"><Package className="mr-2 h-4 w-4" /> Meus pedidos</Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
-                  <Link to="/painel"><Store className="mr-2 h-4 w-4" /> {boxId ? (isSeller ? "Painel do meu box" : "Habilitação em análise") : "Tornar-se um Produtor/Vendedor"}</Link>
+                  <Link to="/painel"><Store className="mr-2 h-4 w-4" /> {boxId ? (isSeller ? "Painel do meu box" : "Minha habilitação") : "Tornar-se um Produtor/Vendedor"}</Link>
                 </DropdownMenuItem>
                 {isAdmin && (
                   <DropdownMenuItem asChild>
