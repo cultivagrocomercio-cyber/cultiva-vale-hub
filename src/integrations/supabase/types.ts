@@ -228,12 +228,22 @@ export type Database = {
           buyer_id: string
           commission_amount: number
           commission_rate: number
+          completed_at: string | null
           created_at: string
+          delivered_at: string | null
+          dispute_reason: string
+          disputed_at: string | null
           id: string
           net_amount: number
           notes: string
+          paid_at: string | null
+          payment_proof_url: string | null
+          resolution_note: string
+          shipped_at: string | null
+          shipping_note: string
           status: Database["public"]["Enums"]["order_status"]
           total: number
+          tracking_code: string
           updated_at: string
         }
         Insert: {
@@ -241,12 +251,22 @@ export type Database = {
           buyer_id: string
           commission_amount?: number
           commission_rate?: number
+          completed_at?: string | null
           created_at?: string
+          delivered_at?: string | null
+          dispute_reason?: string
+          disputed_at?: string | null
           id?: string
           net_amount?: number
           notes?: string
+          paid_at?: string | null
+          payment_proof_url?: string | null
+          resolution_note?: string
+          shipped_at?: string | null
+          shipping_note?: string
           status?: Database["public"]["Enums"]["order_status"]
           total?: number
+          tracking_code?: string
           updated_at?: string
         }
         Update: {
@@ -254,12 +274,22 @@ export type Database = {
           buyer_id?: string
           commission_amount?: number
           commission_rate?: number
+          completed_at?: string | null
           created_at?: string
+          delivered_at?: string | null
+          dispute_reason?: string
+          disputed_at?: string | null
           id?: string
           net_amount?: number
           notes?: string
+          paid_at?: string | null
+          payment_proof_url?: string | null
+          resolution_note?: string
+          shipped_at?: string | null
+          shipping_note?: string
           status?: Database["public"]["Enums"]["order_status"]
           total?: number
+          tracking_code?: string
           updated_at?: string
         }
         Relationships: [
@@ -444,12 +474,20 @@ export type Database = {
         Args: { _plan: Database["public"]["Enums"]["box_plan"] }
         Returns: number
       }
+      release_due_orders: { Args: never; Returns: number }
     }
     Enums: {
       app_role: "admin" | "seller" | "buyer"
       box_plan: "basico" | "intermediario" | "premium"
       box_status: "pendente" | "aprovado" | "rejeitado"
-      order_status: "pendente" | "confirmado" | "entregue" | "cancelado"
+      order_status:
+        | "pendente_pagamento"
+        | "pago_em_custodia"
+        | "enviado"
+        | "aguardando_confirmacao"
+        | "concluido_liquidado"
+        | "em_disputa"
+        | "cancelado"
       product_category: "plantas" | "insumos" | "maquinas"
     }
     CompositeTypes: {
@@ -581,7 +619,15 @@ export const Constants = {
       app_role: ["admin", "seller", "buyer"],
       box_plan: ["basico", "intermediario", "premium"],
       box_status: ["pendente", "aprovado", "rejeitado"],
-      order_status: ["pendente", "confirmado", "entregue", "cancelado"],
+      order_status: [
+        "pendente_pagamento",
+        "pago_em_custodia",
+        "enviado",
+        "aguardando_confirmacao",
+        "concluido_liquidado",
+        "em_disputa",
+        "cancelado",
+      ],
       product_category: ["plantas", "insumos", "maquinas"],
     },
   },

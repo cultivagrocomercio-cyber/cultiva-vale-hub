@@ -94,9 +94,12 @@ export const STATES = [
 ];
 
 export const ORDER_STATUS_LABEL: Record<string, string> = {
-  pendente: "Pendente",
-  confirmado: "Confirmado",
-  entregue: "Entregue",
+  pendente_pagamento: "Aguardando pagamento",
+  pago_em_custodia: "Pago · em custódia",
+  enviado: "Enviado",
+  aguardando_confirmacao: "Aguardando confirmação",
+  concluido_liquidado: "Concluído · liquidado",
+  em_disputa: "Em disputa",
   cancelado: "Cancelado",
 };
 
