@@ -1,5 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
+import { planWeight, type BoxPlan } from "./commission";
 
 export interface PublicBox {
   id: string;
@@ -13,6 +14,7 @@ export interface PublicBox {
   state: string;
   region: string;
   whatsapp: string | null;
+  plan: BoxPlan;
   createdAt: string;
   rating: number | null;
   reviewCount: number;
@@ -29,7 +31,7 @@ export interface PublicProduct {
   subcategory: string;
   imageUrls: string[];
   createdAt: string;
-  box: { id: string; name: string; slug: string; city: string; state: string; region: string };
+  box: { id: string; name: string; slug: string; city: string; state: string; region: string; plan: BoxPlan };
 }
 
 export interface PublicReview {
@@ -51,6 +53,22 @@ const searchSchema = z.object({
 
 type ReviewRow = { box_id: string; rating: number };
 
+/** Ordena por peso do plano (premium > intermediário > básico), preservando a ordem original dentro do mesmo peso. */
+function sortByPlan<T>(rows: T[], plan: (r: T) => BoxPlan, rotate = 0): T[] {
+  const groups = new Map<number, T[]>();
+  for (const r of rows) {
+    const w = planWeight(plan(r));
+    groups.set(w, [...(groups.get(w) ?? []), r]);
+  }
+  const out: T[] = [];
+  for (const w of [3, 2, 1]) {
+    const g = groups.get(w) ?? [];
+    const k = g.length ? rotate % g.length : 0;
+    out.push(...g.slice(k), ...g.slice(0, k));
+  }
+  return out;
+}
+
 function aggregateReviews(rows: ReviewRow[]) {
   const map = new Map<string, { sum: number; n: number }>();
   for (const r of rows) {
@@ -68,18 +86,20 @@ export const getHomeData = createServerFn({ method: "GET" }).handler(async () =>
   const sb = createPublicClient();
 
   const [boxesRes, productsRes, reviewsRes] = await Promise.all([
-    sb.from("boxes").select("*").order("created_at", { ascending: false }).limit(8),
+    sb.from("boxes").select("*").in("plan", ["intermediario", "premium"]).order("created_at", { ascending: false }).limit(24),
     sb
       .from("products")
-      .select("*, boxes!inner(id, name, slug, city, state, region)")
+      .select("*, boxes!inner(id, name, slug, city, state, region, plan)")
       .eq("active", true)
       .order("created_at", { ascending: false })
       .limit(24),
     sb.from("reviews").select("box_id, rating"),
   ]);
 
-  const boxes = boxesRes.data ?? [];
-  const products = productsRes.data ?? [];
+  // Premium primeiro, depois intermediário; rotaciona a cada hora para revezar a vitrine
+  const rot = Math.floor(Date.now() / 3_600_000);
+  const boxes = sortByPlan(boxesRes.data ?? [], (b) => b.plan, rot).slice(0, 8);
+  const products = sortByPlan(productsRes.data ?? [], (p) => p.boxes.plan);
   const agg = aggregateReviews((reviewsRes.data ?? []) as ReviewRow[]);
 
   const counts = new Map<string, number>();
@@ -114,6 +134,7 @@ export const getHomeData = createServerFn({ method: "GET" }).handler(async () =>
       state: b.state,
       region: b.region,
       whatsapp: b.whatsapp,
+      plan: b.plan,
       createdAt: b.created_at,
       rating: a ? a.sum / a.n : null,
       reviewCount: a?.n ?? 0,
@@ -172,7 +193,7 @@ export const searchProducts = createServerFn({ method: "GET" })
     const buildProducts = (regions: string[] | null, max: number) => {
       let query = sb
         .from("products")
-        .select("*, boxes!inner(id, name, slug, city, state, region)")
+        .select("*, boxes!inner(id, name, slug, city, state, region, plan)")
         .eq("active", true)
         .limit(max);
       if (data.q) query = query.ilike("name", `%${data.q}%`);
@@ -202,9 +223,10 @@ export const searchProducts = createServerFn({ method: "GET" })
     if (nearRes.error) throw new Error(nearRes.error.message);
     if (boxRes.error) throw new Error(boxRes.error.message);
 
-    const mainRows = mainRes.data ?? [];
-    const nearRows = nearRes.data ?? [];
-    let boxRows = boxRes.data ?? [];
+    // Ordenação algorítmica: premium (3) > intermediário (2) > básico (1); dentro do peso, mantém o critério escolhido
+    const mainRows = sortByPlan(mainRes.data ?? [], (p) => p.boxes.plan);
+    const nearRows = sortByPlan(nearRes.data ?? [], (p) => p.boxes.plan);
+    let boxRows = sortByPlan(boxRes.data ?? [], (b) => b.plan);
 
     // Contagem de produtos ativos por box (respeitando categoria/sub quando informados)
     let countQuery = sb.from("products").select("box_id, category, subcategory").eq("active", true);
@@ -239,6 +261,7 @@ export const searchProducts = createServerFn({ method: "GET" })
         state: b.state,
         region: b.region,
         whatsapp: b.whatsapp,
+        plan: b.plan,
         createdAt: b.created_at,
         rating: a ? a.sum / a.n : null,
         reviewCount: a?.n ?? 0,
@@ -294,6 +317,7 @@ export const getBoxBySlug = createServerFn({ method: "GET" })
       state: b.state,
       region: b.region,
       whatsapp: b.whatsapp,
+      plan: b.plan,
       createdAt: b.created_at,
       rating,
       reviewCount: reviewsRaw.length,
@@ -310,7 +334,7 @@ export const getBoxBySlug = createServerFn({ method: "GET" })
       subcategory: p.subcategory,
       imageUrls: p.images[0] ? [resolve(urlMap, p.images[0])].filter((x): x is string => !!x) : [],
       createdAt: p.created_at,
-      box: { id: b.id, name: b.name, slug: b.slug, city: b.city, state: b.state, region: b.region },
+      box: { id: b.id, name: b.name, slug: b.slug, city: b.city, state: b.state, region: b.region, plan: b.plan },
     }));
 
     const reviews: PublicReview[] = reviewsRaw.map((r) => ({
@@ -333,7 +357,7 @@ export const getProductById = createServerFn({ method: "GET" })
 
     const { data: p } = await sb
       .from("products")
-      .select("*, boxes!inner(id, name, slug, city, state, region, logo_url, whatsapp)")
+      .select("*, boxes!inner(id, name, slug, city, state, region, plan, logo_url, whatsapp)")
       .eq("id", data.id)
       .eq("active", true)
       .maybeSingle();
@@ -343,7 +367,7 @@ export const getProductById = createServerFn({ method: "GET" })
       sb.from("reviews").select("rating").eq("box_id", p.box_id),
       sb
         .from("products")
-        .select("*, boxes!inner(id, name, slug, city, state, region)")
+        .select("*, boxes!inner(id, name, slug, city, state, region, plan)")
         .eq("box_id", p.box_id)
         .eq("active", true)
         .neq("id", p.id)
@@ -364,7 +388,7 @@ export const getProductById = createServerFn({ method: "GET" })
       subcategory: p.subcategory,
       imageUrls: p.images.map((i) => resolve(urlMap, i)).filter((x): x is string => !!x),
       createdAt: p.created_at,
-      box: { id: p.boxes.id, name: p.boxes.name, slug: p.boxes.slug, city: p.boxes.city, state: p.boxes.state, region: p.boxes.region },
+      box: { id: p.boxes.id, name: p.boxes.name, slug: p.boxes.slug, city: p.boxes.city, state: p.boxes.state, region: p.boxes.region, plan: p.boxes.plan },
       boxLogoUrl: resolve(urlMap, p.boxes.logo_url),
       boxWhatsapp: p.boxes.whatsapp,
       boxRating: rating,
@@ -398,7 +422,7 @@ export const getPublicByIds = createServerFn({ method: "GET" })
 
     const [prodRes, boxRes, reviewsRes, countRes] = await Promise.all([
       data.productIds.length
-        ? sb.from("products").select("*, boxes!inner(id, name, slug, city, state, region)").in("id", data.productIds).eq("active", true)
+        ? sb.from("products").select("*, boxes!inner(id, name, slug, city, state, region, plan)").in("id", data.productIds).eq("active", true)
         : Promise.resolve({ data: [] as never[] }),
       data.boxIds.length ? sb.from("boxes").select("*").in("id", data.boxIds) : Promise.resolve({ data: [] as never[] }),
       data.boxIds.length ? sb.from("reviews").select("box_id, rating").in("box_id", data.boxIds) : Promise.resolve({ data: [] as never[] }),
@@ -406,7 +430,7 @@ export const getPublicByIds = createServerFn({ method: "GET" })
     ]);
 
     const prodRows = (prodRes.data ?? []) as Parameters<typeof mapProduct>[0][];
-    type BoxRow = { id: string; name: string; slug: string; logo_url: string | null; cover_url: string | null; description: string; story: string; city: string; state: string; region: string; whatsapp: string | null; created_at: string };
+    type BoxRow = { id: string; name: string; slug: string; logo_url: string | null; cover_url: string | null; description: string; story: string; city: string; state: string; region: string; whatsapp: string | null; plan: BoxPlan; created_at: string };
     const boxRows = (boxRes.data ?? []) as BoxRow[];
     const agg = aggregateReviews((reviewsRes.data ?? []) as ReviewRow[]);
     const counts = new Map<string, number>();
@@ -424,7 +448,7 @@ export const getPublicByIds = createServerFn({ method: "GET" })
         id: b.id, name: b.name, slug: b.slug,
         logoUrl: resolve(urlMap, b.logo_url), coverUrl: resolve(urlMap, b.cover_url),
         description: b.description, story: b.story, city: b.city, state: b.state, region: b.region,
-        whatsapp: b.whatsapp, createdAt: b.created_at,
+        whatsapp: b.whatsapp, plan: b.plan, createdAt: b.created_at,
         rating: a ? a.sum / a.n : null, reviewCount: a?.n ?? 0, productCount: counts.get(b.id) ?? 0,
       };
     });

@@ -420,7 +420,7 @@ function EarningsTab({ box }: { box: Box }) {
       return {
         count: paid.length,
         pendingCount: data.length - paid.length,
-        pendingTotal: sum(data.filter((o) => o.status === "pendente"), "total"),
+        pendingTotal: sum(data.filter((o) => o.status === "pendente_pagamento"), "total"),
         total: sum(paid, "total"),
         commission: sum(paid, "commission_amount"),
         net: sum(paid, "net_amount"),
@@ -506,7 +506,7 @@ function OrdersTab({ boxId }: { boxId: string }) {
       </div>
     );
   }
-  const pending = data.orders.filter((o) => o.status === "pendente").length;
+  const pending = data.orders.filter((o) => o.status === "pendente_pagamento").length;
   return (
     <div className="space-y-4">
       {pending > 0 && <p className="rounded-xl bg-sun-light px-4 py-2 text-sm font-semibold">{pending} {pending === 1 ? "pedido aguarda" : "pedidos aguardam"} sua confirmação.</p>}
