@@ -441,7 +441,7 @@ export const getPublicByIds = createServerFn({ method: "GET" })
     ]);
 
     const prodRows = (prodRes.data ?? []) as Parameters<typeof mapProduct>[0][];
-    type BoxRow = { id: string; name: string; slug: string; logo_url: string | null; cover_url: string | null; description: string; story: string; city: string; state: string; region: string; whatsapp: string | null; plan: BoxPlan; created_at: string; rating_avg: number | string | null; rating_count: number };
+    type BoxRow = { id: string; name: string; slug: string; logo_url: string | null; cover_url: string | null; description: string; story: string; city: string; state: string; region: string; whatsapp: string | null; plan: BoxPlan; logistics: string[]; created_at: string; rating_avg: number | string | null; rating_count: number };
     const boxRows = (boxRes.data ?? []) as BoxRow[];
     const counts = new Map<string, number>();
     for (const r of (countRes.data ?? []) as { box_id: string }[]) counts.set(r.box_id, (counts.get(r.box_id) ?? 0) + 1);
