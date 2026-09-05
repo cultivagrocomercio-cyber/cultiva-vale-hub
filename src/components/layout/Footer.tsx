@@ -33,6 +33,17 @@ export function Footer() {
             <li><Link to="/meus-pedidos" className="hover:text-primary">Meus pedidos</Link></li>
             <li><Link to="/carrinho" className="hover:text-primary">Carrinho</Link></li>
           </ul>
+          <p className="mt-6 text-xs font-bold uppercase tracking-widest text-secondary">Contato</p>
+          <ul className="mt-3 space-y-2 text-sm">
+            <li>
+              <a href={`https://wa.me/${PLATFORM_WHATSAPP}`} target="_blank" rel="noreferrer" className="hover:text-primary">
+                WhatsApp (13) 99131-8923
+              </a>
+            </li>
+            <li>
+              <a href={`mailto:${PLATFORM_EMAIL}`} className="break-all hover:text-primary">{PLATFORM_EMAIL}</a>
+            </li>
+          </ul>
         </div>
       </div>
       <div className="border-t">
