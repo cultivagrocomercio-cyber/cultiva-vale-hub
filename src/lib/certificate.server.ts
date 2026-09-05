@@ -37,7 +37,7 @@ export function parsePfx(bytes: Uint8Array, password: string): ParsedCert {
     });
     if (match) leaf = match;
   } else {
-    leaf = certs.reduce((a, c) => (c.validity.notAfter < a.validity.notAfter ? c : a), certs[0]);
+    leaf = certs.reduce((a, c) => (c.validity.notAfter < a.validity.notAfter ? c : a), certs[0]!);
   }
 
   const cn = String(leaf.subject.getField("CN")?.value ?? "");
