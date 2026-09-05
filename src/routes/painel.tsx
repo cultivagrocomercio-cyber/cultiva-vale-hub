@@ -13,6 +13,7 @@ import { FISCAL_RULES, detectTaxKind, formatTaxId, onlyDigits, validateFiscal } 
 import { ImageUploader } from "@/components/ImageUploader";
 import { BoxReviewChat } from "@/components/BoxReviewChat";
 import { PlanCard } from "@/components/PlanCard";
+import { InvoicesTab } from "@/components/InvoicesTab";
 import { StorageImage } from "@/components/StorageImage";
 import { OrderCard, type OrderWithItems } from "@/components/OrderCard";
 import { CategoryIcon } from "@/components/ProductCard";
@@ -143,11 +144,13 @@ function Dashboard({ box, userId }: { box: Box; userId: string }) {
           <TabsTrigger value="produtos">Produtos</TabsTrigger>
           <TabsTrigger value="pedidos">Pedidos</TabsTrigger>
           <TabsTrigger value="ganhos">Meus ganhos</TabsTrigger>
+          <TabsTrigger value="notas">Notas fiscais</TabsTrigger>
           <TabsTrigger value="box">Meu box</TabsTrigger>
         </TabsList>
         <TabsContent value="produtos" className="mt-4"><ProductsTab box={box} userId={userId} /></TabsContent>
         <TabsContent value="pedidos" className="mt-4"><OrdersTab boxId={box.id} /></TabsContent>
         <TabsContent value="ganhos" className="mt-4"><EarningsTab box={box} /></TabsContent>
+        <TabsContent value="notas" className="mt-4"><InvoicesTab box={box} /></TabsContent>
         <TabsContent value="box" className="mt-4"><div className="max-w-2xl"><BoxForm userId={userId} box={box} /></div></TabsContent>
       </Tabs>
     </div>
@@ -450,6 +453,7 @@ function ProductForm({ boxId, userId, product, onDone }: { boxId: string; userId
         description: String(fd.get("description")).trim(),
         price: Number(String(fd.get("price")).replace(",", ".")),
         stock: Number(fd.get("stock")),
+        ncm: String(fd.get("ncm") ?? "").trim(),
         category,
         subcategory: sub,
         images,
@@ -515,6 +519,10 @@ function ProductForm({ boxId, userId, product, onDone }: { boxId: string; userId
           <Label htmlFor="p-stock">Estoque</Label>
           <Input id="p-stock" name="stock" type="number" min="0" step="1" required defaultValue={product?.stock ?? 1} />
         </div>
+      </div>
+      <div className="space-y-1.5">
+        <Label htmlFor="p-ncm">NCM (classificação fiscal, opcional)</Label>
+        <Input id="p-ncm" name="ncm" inputMode="numeric" maxLength={10} defaultValue={product?.ncm} placeholder="Ex.: 0602.90.90 — usado na NF-e" pattern="[0-9.]*" />
       </div>
       <div className="space-y-1.5">
         <Label htmlFor="p-desc">Descrição</Label>
