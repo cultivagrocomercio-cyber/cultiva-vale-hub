@@ -6,8 +6,8 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import type { Tables } from "@/integrations/supabase/types";
 import { useAuth } from "@/lib/auth";
-import { CATEGORIES, CATEGORY_MAP, REGIONS, STATES, formatPrice, slugify, type CategorySlug } from "@/lib/categories";
-import { PLANS, formatRate, isPaidOrder } from "@/lib/commission";
+import { CATEGORIES, CATEGORY_MAP, ORDER_STATUS_LABEL, REGIONS, STATES, formatPrice, slugify, type CategorySlug } from "@/lib/categories";
+import { PLANS, formatRate, isInEscrow, isPaidOrder, isSettledOrder } from "@/lib/commission";
 import { ImageUploader } from "@/components/ImageUploader";
 import { BoxReviewChat } from "@/components/BoxReviewChat";
 import { PlanCard } from "@/components/PlanCard";
@@ -425,19 +425,23 @@ function EarningsTab({ box }: { box: Box }) {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("orders")
-        .select("status, total, commission_amount, net_amount")
-        .eq("box_id", box.id);
+        .select("id, status, total, commission_rate, commission_amount, net_amount, created_at, paid_at")
+        .eq("box_id", box.id)
+        .order("created_at", { ascending: false });
       if (error) throw error;
       const paid = data.filter((o) => isPaidOrder(o.status));
       const sum = (rows: typeof data, key: "total" | "commission_amount" | "net_amount") =>
         rows.reduce((acc, r) => acc + Number(r[key]), 0);
       return {
+        rows: paid,
         count: paid.length,
         pendingCount: data.length - paid.length,
         pendingTotal: sum(data.filter((o) => o.status === "pendente_pagamento"), "total"),
         total: sum(paid, "total"),
         commission: sum(paid, "commission_amount"),
         net: sum(paid, "net_amount"),
+        settled: sum(paid.filter((o) => isSettledOrder(o.status)), "net_amount"),
+        escrow: sum(paid.filter((o) => isInEscrow(o.status)), "net_amount"),
       };
     },
     refetchOnWindowFocus: true,
@@ -451,14 +455,15 @@ function EarningsTab({ box }: { box: Box }) {
         <p className="font-semibold">{plan.name} · comissão de {formatRate(plan.rate)}</p>
         <p className="mt-1 text-muted-foreground">
           A cada venda fechada e paga dentro do Cultiva Vale, a plataforma retém {formatRate(plan.rate)} do valor do pedido.
-          O restante é seu. Quer pagar menos? Use "Fazer upgrade" na aba Produtos para conhecer os planos Intermediário (5%) e Premium (3%).
+          A taxa é gravada no pedido na data da compra e não muda depois. Quer pagar menos? Use "Fazer upgrade" na aba Produtos para conhecer os planos Intermediário (5%) e Premium (3%).
         </p>
       </div>
 
-      <div className="grid gap-3 sm:grid-cols-3">
-        <EarningCard label="Total de vendas" value={formatPrice(data.total)} hint={`${data.count} ${data.count === 1 ? "venda paga" : "vendas pagas"}`} />
-        <EarningCard label="Comissão da plataforma" value={formatPrice(data.commission)} hint={`Taxa do ${plan.name.toLowerCase()}`} />
-        <EarningCard label="Líquido a receber" value={formatPrice(data.net)} hint="Total das vendas menos a comissão" highlight />
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        <EarningCard label="Total bruto acumulado" value={formatPrice(data.total)} hint={`${data.count} ${data.count === 1 ? "venda paga" : "vendas pagas"}`} />
+        <EarningCard label="Comissões retidas" value={formatPrice(data.commission)} hint={`Taxa do ${plan.name.toLowerCase()}`} />
+        <EarningCard label="Saldo líquido disponível" value={formatPrice(data.settled)} hint="Pedidos concluídos e liquidados" highlight />
+        <EarningCard label="Em custódia" value={formatPrice(data.escrow)} hint="Liberado após a entrega confirmada" />
       </div>
 
       {data.pendingCount > 0 && (
@@ -468,10 +473,48 @@ function EarningsTab({ box }: { box: Box }) {
         </p>
       )}
 
-      {data.count === 0 && (
+      {data.count === 0 ? (
         <div className="flex flex-col items-center rounded-2xl border border-dashed p-12 text-center text-sm text-muted-foreground">
           <Wallet className="h-8 w-8" />
           <p className="mt-2">Nenhuma venda paga ainda. Confirme os pedidos recebidos para começar a somar seus ganhos.</p>
+        </div>
+      ) : (
+        <div className="overflow-x-auto rounded-2xl border bg-card shadow-soft">
+          <table className="w-full text-sm">
+            <thead className="bg-muted/50 text-left text-xs uppercase tracking-widest text-muted-foreground">
+              <tr>
+                <th className="px-4 py-3 font-bold">Pedido</th>
+                <th className="px-4 py-3 font-bold">Data</th>
+                <th className="px-4 py-3 font-bold">Situação</th>
+                <th className="px-4 py-3 text-right font-bold">Bruto</th>
+                <th className="px-4 py-3 text-right font-bold">Taxa</th>
+                <th className="px-4 py-3 text-right font-bold">Retenção</th>
+                <th className="px-4 py-3 text-right font-bold">Líquido</th>
+              </tr>
+            </thead>
+            <tbody>
+              {data.rows.map((o) => (
+                <tr key={o.id} className="border-t">
+                  <td className="px-4 py-3 font-mono text-xs">#{o.id.slice(0, 8)}</td>
+                  <td className="px-4 py-3 whitespace-nowrap">{new Date(o.paid_at ?? o.created_at).toLocaleDateString("pt-BR")}</td>
+                  <td className="px-4 py-3 whitespace-nowrap">{ORDER_STATUS_LABEL[o.status]}</td>
+                  <td className="px-4 py-3 text-right whitespace-nowrap">{formatPrice(Number(o.total))}</td>
+                  <td className="px-4 py-3 text-right">{formatRate(Number(o.commission_rate))}</td>
+                  <td className="px-4 py-3 text-right whitespace-nowrap text-destructive">− {formatPrice(Number(o.commission_amount))}</td>
+                  <td className="px-4 py-3 text-right whitespace-nowrap font-semibold text-primary">{formatPrice(Number(o.net_amount))}</td>
+                </tr>
+              ))}
+            </tbody>
+            <tfoot className="border-t bg-muted/30 font-semibold">
+              <tr>
+                <td className="px-4 py-3" colSpan={3}>Total</td>
+                <td className="px-4 py-3 text-right">{formatPrice(data.total)}</td>
+                <td className="px-4 py-3" />
+                <td className="px-4 py-3 text-right text-destructive">− {formatPrice(data.commission)}</td>
+                <td className="px-4 py-3 text-right text-primary">{formatPrice(data.net)}</td>
+              </tr>
+            </tfoot>
+          </table>
         </div>
       )}
     </div>
