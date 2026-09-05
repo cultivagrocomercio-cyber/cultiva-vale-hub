@@ -163,6 +163,69 @@ export type Database = {
           },
         ]
       }
+      invoices: {
+        Row: {
+          access_key: string
+          box_id: string
+          cfop: string
+          created_at: string
+          id: string
+          issued_at: string | null
+          number: string
+          order_id: string
+          payload: Json
+          rejection_reason: string
+          series: string
+          status: Database["public"]["Enums"]["nfe_status"]
+          updated_at: string
+        }
+        Insert: {
+          access_key?: string
+          box_id: string
+          cfop?: string
+          created_at?: string
+          id?: string
+          issued_at?: string | null
+          number?: string
+          order_id: string
+          payload?: Json
+          rejection_reason?: string
+          series?: string
+          status?: Database["public"]["Enums"]["nfe_status"]
+          updated_at?: string
+        }
+        Update: {
+          access_key?: string
+          box_id?: string
+          cfop?: string
+          created_at?: string
+          id?: string
+          issued_at?: string | null
+          number?: string
+          order_id?: string
+          payload?: Json
+          rejection_reason?: string
+          series?: string
+          status?: Database["public"]["Enums"]["nfe_status"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "invoices_box_id_fkey"
+            columns: ["box_id"]
+            isOneToOne: false
+            referencedRelation: "boxes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invoices_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: true
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       messages: {
         Row: {
           content: string
@@ -273,6 +336,7 @@ export type Database = {
       orders: {
         Row: {
           box_id: string
+          buyer_fiscal: Json
           buyer_id: string
           commission_amount: number
           commission_rate: number
@@ -296,6 +360,7 @@ export type Database = {
         }
         Insert: {
           box_id: string
+          buyer_fiscal?: Json
           buyer_id: string
           commission_amount?: number
           commission_rate?: number
@@ -319,6 +384,7 @@ export type Database = {
         }
         Update: {
           box_id?: string
+          buyer_fiscal?: Json
           buyer_id?: string
           commission_amount?: number
           commission_rate?: number
@@ -360,6 +426,7 @@ export type Database = {
           id: string
           images: string[]
           name: string
+          ncm: string
           price: number
           stock: number
           subcategory: string
@@ -374,6 +441,7 @@ export type Database = {
           id?: string
           images?: string[]
           name: string
+          ncm?: string
           price: number
           stock?: number
           subcategory: string
@@ -388,6 +456,7 @@ export type Database = {
           id?: string
           images?: string[]
           name?: string
+          ncm?: string
           price?: number
           stock?: number
           subcategory?: string
@@ -405,33 +474,48 @@ export type Database = {
       }
       profiles: {
         Row: {
+          address: string
           avatar_url: string | null
+          cep: string
           city: string | null
           created_at: string
           full_name: string
           id: string
+          legal_name: string
           phone: string | null
           state: string | null
+          state_registration: string
+          tax_id: string
           updated_at: string
         }
         Insert: {
+          address?: string
           avatar_url?: string | null
+          cep?: string
           city?: string | null
           created_at?: string
           full_name?: string
           id: string
+          legal_name?: string
           phone?: string | null
           state?: string | null
+          state_registration?: string
+          tax_id?: string
           updated_at?: string
         }
         Update: {
+          address?: string
           avatar_url?: string | null
+          cep?: string
           city?: string | null
           created_at?: string
           full_name?: string
           id?: string
+          legal_name?: string
           phone?: string | null
           state?: string | null
+          state_registration?: string
+          tax_id?: string
           updated_at?: string
         }
         Relationships: []
@@ -518,7 +602,12 @@ export type Database = {
       is_valid_cpf: { Args: { _v: string }; Returns: boolean }
       is_valid_ie: { Args: { _uf: string; _v: string }; Returns: boolean }
       place_order: {
-        Args: { _box_id: string; _items: Json; _notes: string }
+        Args: {
+          _box_id: string
+          _buyer_fiscal?: Json
+          _items: Json
+          _notes: string
+        }
         Returns: string
       }
       plan_commission_rate: {
@@ -535,6 +624,12 @@ export type Database = {
       app_role: "admin" | "seller" | "buyer"
       box_plan: "basico" | "intermediario" | "premium"
       box_status: "pendente" | "aprovado" | "rejeitado" | "suspenso"
+      nfe_status:
+        | "pendente_emissao"
+        | "processando_sefaz"
+        | "autorizada"
+        | "rejeitada"
+        | "cancelada"
       order_status:
         | "pendente_pagamento"
         | "pago_em_custodia"
@@ -674,6 +769,13 @@ export const Constants = {
       app_role: ["admin", "seller", "buyer"],
       box_plan: ["basico", "intermediario", "premium"],
       box_status: ["pendente", "aprovado", "rejeitado", "suspenso"],
+      nfe_status: [
+        "pendente_emissao",
+        "processando_sefaz",
+        "autorizada",
+        "rejeitada",
+        "cancelada",
+      ],
       order_status: [
         "pendente_pagamento",
         "pago_em_custodia",
