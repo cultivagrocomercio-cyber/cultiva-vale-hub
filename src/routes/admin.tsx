@@ -1,14 +1,14 @@
 import { useEffect, useState } from "react";
+import { BoxReviewCard, STATUS_LABEL, type BoxWithOwner } from "@/components/admin/BoxReviewCard";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Check, ExternalLink, MessageCircle, Package, ShieldCheck, Store, X } from "lucide-react";
+import { Check, ClipboardList, Package, ShieldCheck, Store } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import type { Tables } from "@/integrations/supabase/types";
 import { useAuth } from "@/lib/auth";
-import { CATEGORY_MAP, formatPrice } from "@/lib/categories";
-import { PLANS, formatRate, type BoxPlan } from "@/lib/commission";
-import { BoxReviewChat } from "@/components/BoxReviewChat";
+import { formatPrice } from "@/lib/categories";
+
 import { StorageImage } from "@/components/StorageImage";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -16,10 +16,6 @@ import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Textarea } from "@/components/ui/textarea";
-import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 export const Route = createFileRoute("/admin")({
   head: () => ({
@@ -36,14 +32,6 @@ export const Route = createFileRoute("/admin")({
 
 type Box = Tables<"boxes">;
 type Product = Tables<"products">;
-type BoxStatus = Box["status"];
-
-const STATUS_LABEL: Record<BoxStatus, string> = { pendente: "Pendente", aprovado: "Aprovado", rejeitado: "Rejeitado" };
-const STATUS_STYLE: Record<BoxStatus, string> = {
-  pendente: "bg-sun/40 text-foreground hover:bg-sun/40",
-  aprovado: "bg-leaf-light text-primary hover:bg-leaf-light",
-  rejeitado: "bg-destructive/15 text-destructive hover:bg-destructive/15",
-};
 
 function AdminPage() {
   const { user, loading, isAdmin } = useAuth();
@@ -83,7 +71,7 @@ function AdminDashboard() {
       const owners = Array.from(new Set(data.map((b) => b.owner_id)));
       const { data: profiles } = owners.length ? await supabase.from("profiles").select("id, full_name, phone").in("id", owners) : { data: [] };
       const ownerMap = new Map((profiles ?? []).map((p) => [p.id, p]));
-      return data.map((b) => ({ ...b, owner: ownerMap.get(b.owner_id) ?? null }));
+      return data.map((b) => ({ ...b, owner: ownerMap.get(b.owner_id) ?? null })) as BoxWithOwner[];
     },
   });
 
@@ -98,12 +86,16 @@ function AdminDashboard() {
           <p className="text-xs font-bold uppercase tracking-widest text-secondary">Administração</p>
           <h1 className="font-display text-2xl font-semibold">Cultiva Vale Marketplace</h1>
         </div>
+        <Button asChild className="rounded-full">
+          <Link to="/admin/solicitacoes"><ClipboardList className="mr-2 h-4 w-4" /> Solicitações de boxes{pending.length > 0 && ` (${pending.length})`}</Link>
+        </Button>
       </div>
 
-      <div className="mt-6 grid gap-3 sm:grid-cols-3">
+      <div className="mt-6 grid gap-3 sm:grid-cols-4">
         <Stat label="Boxes cadastrados" value={boxes.length} />
         <Stat label="Aguardando aprovação" value={pending.length} highlight={pending.length > 0} />
         <Stat label="Boxes aprovados" value={boxes.filter((b) => b.status === "aprovado").length} />
+        <Stat label="Suspensos" value={boxes.filter((b) => b.status === "suspenso").length} />
       </div>
 
       <Tabs defaultValue={pending.length ? "pendentes" : "boxes"} className="mt-6">
@@ -114,14 +106,14 @@ function AdminDashboard() {
         </TabsList>
         <TabsContent value="pendentes" className="mt-4">
           {boxesQ.isPending ? <Skeleton className="h-40 rounded-2xl" /> : pending.length ? (
-            <div className="grid gap-3">{pending.map((b) => <BoxRow key={b.id} box={b} />)}</div>
+            <div className="grid gap-3">{pending.map((b) => <BoxReviewCard key={b.id} box={b} />)}</div>
           ) : (
             <Empty icon={<Check className="h-8 w-8" />} title="Nenhum cadastro pendente" text="Novos boxes aparecerão aqui para análise." />
           )}
         </TabsContent>
         <TabsContent value="boxes" className="mt-4">
           {boxesQ.isPending ? <Skeleton className="h-40 rounded-2xl" /> : boxes.length ? (
-            <div className="grid gap-3">{boxes.map((b) => <BoxRow key={b.id} box={b} />)}</div>
+            <div className="grid gap-3">{boxes.map((b) => <BoxReviewCard key={b.id} box={b} />)}</div>
           ) : (
             <Empty icon={<Store className="h-8 w-8" />} title="Nenhum box cadastrado" text="Os boxes criados pelos vendedores aparecerão aqui." />
           )}
@@ -147,136 +139,6 @@ function Empty({ icon, title, text }: { icon: React.ReactNode; title: string; te
       {icon}
       <p className="mt-3 font-semibold text-foreground">{title}</p>
       <p className="text-sm">{text}</p>
-    </div>
-  );
-}
-
-/* ---------------- BOX ROW ---------------- */
-
-type BoxWithOwner = Box & { owner: { id: string; full_name: string; phone: string | null } | null };
-
-function BoxRow({ box }: { box: BoxWithOwner }) {
-  const qc = useQueryClient();
-  const [rejectOpen, setRejectOpen] = useState(false);
-  const [note, setNote] = useState(box.review_note ?? "");
-  const [chatOpen, setChatOpen] = useState(box.status === "pendente");
-
-  const countQ = useQuery({
-    queryKey: ["admin", "box-products-count", box.id],
-    queryFn: async () => (await supabase.from("products").select("id", { count: "exact", head: true }).eq("box_id", box.id)).count ?? 0,
-  });
-
-  const setPlan = useMutation({
-    mutationFn: async (plan: BoxPlan) => {
-      const { error } = await supabase.from("boxes").update({ plan }).eq("id", box.id);
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      toast.success("Plano de comissão atualizado");
-      qc.invalidateQueries({ queryKey: ["admin"] });
-      qc.invalidateQueries({ queryKey: ["seller"] });
-    },
-    onError: (e) => toast.error(e.message),
-  });
-
-  const setStatus = useMutation({
-    mutationFn: async ({ status, review_note }: { status: BoxStatus; review_note?: string }) => {
-      const { error } = await supabase.from("boxes").update({ status, review_note: review_note ?? "" }).eq("id", box.id);
-      if (error) throw error;
-    },
-    onSuccess: (_d, v) => {
-      toast.success(v.status === "aprovado" ? `Box "${box.name}" aprovado` : v.status === "rejeitado" ? `Box "${box.name}" rejeitado` : "Status atualizado");
-      setRejectOpen(false);
-      qc.invalidateQueries({ queryKey: ["admin"] });
-      qc.invalidateQueries({ queryKey: ["home"] });
-      qc.invalidateQueries({ queryKey: ["search"] });
-      qc.invalidateQueries({ queryKey: ["box"] });
-    },
-    onError: (e) => toast.error(e.message),
-  });
-
-  return (
-    <div className="rounded-2xl border bg-card p-4 shadow-soft">
-      <div className="flex flex-wrap items-start gap-4">
-        <div className="h-16 w-16 shrink-0 overflow-hidden rounded-xl border bg-card">
-          <StorageImage path={box.logo_url} alt="" className="h-full w-full" fallback={<Store className="h-6 w-6" />} />
-        </div>
-        <div className="min-w-0 flex-1">
-          <div className="flex flex-wrap items-center gap-2">
-            <h3 className="font-display text-lg font-semibold">{box.name}</h3>
-            <Badge className={`rounded-full ${STATUS_STYLE[box.status]}`}>{STATUS_LABEL[box.status]}</Badge>
-            <Badge variant="outline" className="rounded-full">{PLANS[box.plan].name} · {formatRate(PLANS[box.plan].rate)}</Badge>
-          </div>
-          <p className="text-sm text-muted-foreground">
-            {box.city}/{box.state} · {box.region} · {countQ.data ?? "…"} produto(s)
-          </p>
-          <p className="mt-1 text-xs text-muted-foreground">
-            Responsável: <span className="font-semibold text-foreground">{box.owner?.full_name || "—"}</span>
-            {box.owner?.phone && ` · ${box.owner.phone}`}
-            {box.whatsapp && ` · WhatsApp ${box.whatsapp}`}
-            {" · "}cadastrado em {new Date(box.created_at).toLocaleDateString("pt-BR")}
-          </p>
-          {(box.tax_id || box.address || box.main_category) && (
-            <p className="mt-1 text-xs text-muted-foreground">
-              {box.tax_id && <>CPF/CNPJ: <span className="font-semibold text-foreground">{box.tax_id}</span></>}
-              {box.main_category && <> · Atuação: {CATEGORY_MAP[box.main_category].name}</>}
-              {box.address && <> · Endereço: {box.address}</>}
-            </p>
-          )}
-          {box.description && <p className="mt-2 line-clamp-2 text-sm">{box.description}</p>}
-          {box.status === "rejeitado" && box.review_note && <p className="mt-2 text-xs text-destructive">Motivo: {box.review_note}</p>}
-        </div>
-        <div className="flex flex-wrap items-center gap-2">
-          <Select value={box.plan} onValueChange={(v) => setPlan.mutate(v as BoxPlan)}>
-            <SelectTrigger className="h-9 w-[190px] rounded-full" aria-label="Plano de comissão"><SelectValue /></SelectTrigger>
-            <SelectContent>
-              {(Object.keys(PLANS) as BoxPlan[]).map((k) => (
-                <SelectItem key={k} value={k}>{PLANS[k].name} — {formatRate(PLANS[k].rate)}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <Button asChild size="sm" variant="ghost" className="rounded-full">
-            <Link to="/box/$slug" params={{ slug: box.slug }}><ExternalLink className="mr-1.5 h-4 w-4" /> Ver</Link>
-          </Button>
-          <Button size="sm" variant={chatOpen ? "secondary" : "outline"} className="rounded-full" onClick={() => setChatOpen((v) => !v)} aria-expanded={chatOpen}>
-            <MessageCircle className="mr-1.5 h-4 w-4" /> {chatOpen ? "Ocultar conversa" : "Conversar"}
-          </Button>
-          {box.status !== "aprovado" && (
-            <Button size="sm" className="rounded-full" disabled={setStatus.isPending} onClick={() => setStatus.mutate({ status: "aprovado" })}>
-              <Check className="mr-1.5 h-4 w-4" /> Aprovar
-            </Button>
-          )}
-          {box.status !== "rejeitado" && (
-            <Button size="sm" variant="outline" className="rounded-full text-destructive hover:text-destructive" disabled={setStatus.isPending} onClick={() => setRejectOpen(true)}>
-              <X className="mr-1.5 h-4 w-4" /> Rejeitar
-            </Button>
-          )}
-        </div>
-      </div>
-
-      {chatOpen && (
-        <div className="mt-4">
-          <p className="mb-2 text-xs font-bold uppercase tracking-widest text-muted-foreground">
-            Conversa com {box.owner?.full_name || "o vendedor"}
-          </p>
-          <BoxReviewChat boxId={box.id} emptyText="Envie uma mensagem ao vendedor para tirar dúvidas antes de aprovar ou rejeitar." />
-        </div>
-      )}
-
-      <Dialog open={rejectOpen} onOpenChange={setRejectOpen}>
-        <DialogContent>
-          <DialogHeader><DialogTitle>Rejeitar "{box.name}"</DialogTitle></DialogHeader>
-          <p className="text-sm text-muted-foreground">O box e seus produtos deixam de aparecer no marketplace. O vendedor verá a observação no painel dele.</p>
-          <Label htmlFor={`note-${box.id}`}>Observação para o vendedor (opcional)</Label>
-          <Textarea id={`note-${box.id}`} value={note} onChange={(e) => setNote(e.target.value)} maxLength={400} placeholder="Ex.: complete a descrição e adicione uma logo." />
-          <div className="flex justify-end gap-2">
-            <Button variant="ghost" className="rounded-full" onClick={() => setRejectOpen(false)}>Cancelar</Button>
-            <Button variant="destructive" className="rounded-full" disabled={setStatus.isPending} onClick={() => setStatus.mutate({ status: "rejeitado", review_note: note.trim() })}>
-              Confirmar rejeição
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }
