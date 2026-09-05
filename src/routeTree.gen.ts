@@ -16,6 +16,7 @@ import { Route as BuscarRouteImport } from './routes/buscar'
 import { Route as CarrinhoRouteImport } from './routes/carrinho'
 import { Route as MeusPedidosRouteImport } from './routes/meus-pedidos'
 import { Route as PainelRouteImport } from './routes/painel'
+import { Route as PainelVendedorRouteImport } from './routes/painel-vendedor'
 import { Route as PerfilRouteImport } from './routes/perfil'
 import { Route as BoxSlugRouteImport } from './routes/box.$slug'
 import { Route as ProdutoIdRouteImport } from './routes/produto.$id'
@@ -55,6 +56,11 @@ const PainelRoute = PainelRouteImport.update({
   path: '/painel',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PainelVendedorRoute = PainelVendedorRouteImport.update({
+  id: '/painel-vendedor',
+  path: '/painel-vendedor',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const PerfilRoute = PerfilRouteImport.update({
   id: '/perfil',
   path: '/perfil',
@@ -79,6 +85,7 @@ export interface FileRoutesByFullPath {
   '/carrinho': typeof CarrinhoRoute
   '/meus-pedidos': typeof MeusPedidosRoute
   '/painel': typeof PainelRoute
+  '/painel-vendedor': typeof PainelVendedorRoute
   '/perfil': typeof PerfilRoute
   '/box/$slug': typeof BoxSlugRoute
   '/produto/$id': typeof ProdutoIdRoute
@@ -91,6 +98,7 @@ export interface FileRoutesByTo {
   '/carrinho': typeof CarrinhoRoute
   '/meus-pedidos': typeof MeusPedidosRoute
   '/painel': typeof PainelRoute
+  '/painel-vendedor': typeof PainelVendedorRoute
   '/perfil': typeof PerfilRoute
   '/box/$slug': typeof BoxSlugRoute
   '/produto/$id': typeof ProdutoIdRoute
@@ -104,6 +112,7 @@ export interface FileRoutesById {
   '/carrinho': typeof CarrinhoRoute
   '/meus-pedidos': typeof MeusPedidosRoute
   '/painel': typeof PainelRoute
+  '/painel-vendedor': typeof PainelVendedorRoute
   '/perfil': typeof PerfilRoute
   '/box/$slug': typeof BoxSlugRoute
   '/produto/$id': typeof ProdutoIdRoute
@@ -118,6 +127,7 @@ export interface FileRouteTypes {
     | '/carrinho'
     | '/meus-pedidos'
     | '/painel'
+    | '/painel-vendedor'
     | '/perfil'
     | '/box/$slug'
     | '/produto/$id'
@@ -130,6 +140,7 @@ export interface FileRouteTypes {
     | '/carrinho'
     | '/meus-pedidos'
     | '/painel'
+    | '/painel-vendedor'
     | '/perfil'
     | '/box/$slug'
     | '/produto/$id'
@@ -142,6 +153,7 @@ export interface FileRouteTypes {
     | '/carrinho'
     | '/meus-pedidos'
     | '/painel'
+    | '/painel-vendedor'
     | '/perfil'
     | '/box/$slug'
     | '/produto/$id'
@@ -155,6 +167,7 @@ export interface RootRouteChildren {
   CarrinhoRoute: typeof CarrinhoRoute
   MeusPedidosRoute: typeof MeusPedidosRoute
   PainelRoute: typeof PainelRoute
+  PainelVendedorRoute: typeof PainelVendedorRoute
   PerfilRoute: typeof PerfilRoute
   BoxSlugRoute: typeof BoxSlugRoute
   ProdutoIdRoute: typeof ProdutoIdRoute
@@ -211,6 +224,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PainelRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/painel-vendedor': {
+      id: '/painel-vendedor'
+      path: '/painel-vendedor'
+      fullPath: '/painel-vendedor'
+      preLoaderRoute: typeof PainelVendedorRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/perfil': {
       id: '/perfil'
       path: '/perfil'
@@ -243,6 +263,7 @@ const rootRouteChildren: RootRouteChildren = {
   CarrinhoRoute: CarrinhoRoute,
   MeusPedidosRoute: MeusPedidosRoute,
   PainelRoute: PainelRoute,
+  PainelVendedorRoute: PainelVendedorRoute,
   PerfilRoute: PerfilRoute,
   BoxSlugRoute: BoxSlugRoute,
   ProdutoIdRoute: ProdutoIdRoute,
