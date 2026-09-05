@@ -216,6 +216,13 @@ function BoxRow({ box }: { box: BoxWithOwner }) {
             {box.whatsapp && ` · WhatsApp ${box.whatsapp}`}
             {" · "}cadastrado em {new Date(box.created_at).toLocaleDateString("pt-BR")}
           </p>
+          {(box.tax_id || box.address || box.main_category) && (
+            <p className="mt-1 text-xs text-muted-foreground">
+              {box.tax_id && <>CPF/CNPJ: <span className="font-semibold text-foreground">{box.tax_id}</span></>}
+              {box.main_category && <> · Atuação: {CATEGORY_MAP[box.main_category].name}</>}
+              {box.address && <> · Endereço: {box.address}</>}
+            </p>
+          )}
           {box.description && <p className="mt-2 line-clamp-2 text-sm">{box.description}</p>}
           {box.status === "rejeitado" && box.review_note && <p className="mt-2 text-xs text-destructive">Motivo: {box.review_note}</p>}
         </div>

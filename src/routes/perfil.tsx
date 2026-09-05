@@ -34,7 +34,7 @@ export const Route = createFileRoute("/perfil")({
 });
 
 function ProfilePage() {
-  const { user, profile, loading, refresh } = useAuth();
+  const { user, profile, loading, refresh, isSeller, boxId } = useAuth();
   const navigate = useNavigate();
   const { aba } = Route.useSearch();
 
@@ -94,6 +94,11 @@ function ProfilePage() {
           <Stat label="Favoritos" value={String(favCount)} />
           <Stat label="Total comprado" value={formatPrice(totalSpent)} />
         </div>
+        {!isSeller && (
+          <Button asChild variant={boxId ? "outline" : "secondary"} className="w-full rounded-full sm:w-auto">
+            <Link to="/painel"><Store className="mr-2 h-4 w-4" /> {boxId ? "Habilitação em análise" : "Tornar-se um Produtor/Vendedor"}</Link>
+          </Button>
+        )}
       </div>
 
       <Tabs value={aba ?? "pedidos"} onValueChange={(v) => navigate({ to: ".", search: { aba: v as "pedidos" | "favoritos" | "dados" }, replace: true })} className="mt-6">

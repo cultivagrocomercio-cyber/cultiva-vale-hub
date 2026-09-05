@@ -48,12 +48,14 @@ export type Database = {
       }
       boxes: {
         Row: {
+          address: string
           city: string
           cover_url: string | null
           created_at: string
           description: string
           id: string
           logo_url: string | null
+          main_category: Database["public"]["Enums"]["product_category"] | null
           name: string
           owner_id: string
           plan: Database["public"]["Enums"]["box_plan"]
@@ -63,16 +65,19 @@ export type Database = {
           state: string
           status: Database["public"]["Enums"]["box_status"]
           story: string
+          tax_id: string
           updated_at: string
           whatsapp: string | null
         }
         Insert: {
+          address?: string
           city: string
           cover_url?: string | null
           created_at?: string
           description?: string
           id?: string
           logo_url?: string | null
+          main_category?: Database["public"]["Enums"]["product_category"] | null
           name: string
           owner_id: string
           plan?: Database["public"]["Enums"]["box_plan"]
@@ -82,16 +87,19 @@ export type Database = {
           state?: string
           status?: Database["public"]["Enums"]["box_status"]
           story?: string
+          tax_id?: string
           updated_at?: string
           whatsapp?: string | null
         }
         Update: {
+          address?: string
           city?: string
           cover_url?: string | null
           created_at?: string
           description?: string
           id?: string
           logo_url?: string | null
+          main_category?: Database["public"]["Enums"]["product_category"] | null
           name?: string
           owner_id?: string
           plan?: Database["public"]["Enums"]["box_plan"]
@@ -101,6 +109,7 @@ export type Database = {
           state?: string
           status?: Database["public"]["Enums"]["box_status"]
           story?: string
+          tax_id?: string
           updated_at?: string
           whatsapp?: string | null
         }

@@ -8,6 +8,7 @@ import type { Tables } from "@/integrations/supabase/types";
 import { useAuth } from "@/lib/auth";
 import { CATEGORIES, CATEGORY_MAP, ORDER_STATUS_LABEL, REGIONS, STATES, formatPrice, slugify, type CategorySlug } from "@/lib/categories";
 import { PLANS, formatRate, isInEscrow, isPaidOrder, isSettledOrder } from "@/lib/commission";
+import { clearSellerDraft, readSellerDraft } from "@/lib/seller-draft";
 import { ImageUploader } from "@/components/ImageUploader";
 import { BoxReviewChat } from "@/components/BoxReviewChat";
 import { PlanCard } from "@/components/PlanCard";
@@ -64,8 +65,10 @@ function PanelPage() {
         <div className="mx-auto max-w-2xl">
           <div className="mb-6 text-center">
             <span className="inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-leaf-light text-primary"><Store className="h-7 w-7" /></span>
-            <h1 className="mt-3 font-display text-3xl font-semibold">Abra seu box</h1>
-            <p className="text-sm text-muted-foreground">Seu box é sua loja dentro do Cultiva Vale. Leva menos de 2 minutos.</p>
+            <h1 className="mt-3 font-display text-3xl font-semibold">Tornar-se um Produtor/Vendedor</h1>
+            <p className="text-sm text-muted-foreground">
+              Preencha o pedido de habilitação comercial. Sua conta continua como cliente até a equipe do Cultiva Vale analisar e aprovar seu box.
+            </p>
           </div>
           <BoxForm userId={user.id} />
         </div>
@@ -73,7 +76,38 @@ function PanelPage() {
     );
   }
 
+  if (boxQ.data.status !== "aprovado") {
+    return <UnderReview box={boxQ.data} userId={user.id} />;
+  }
+
   return <Dashboard box={boxQ.data} userId={user.id} />;
+}
+
+/* Conta em análise: sem acesso ao painel de vendas até a deliberação do administrador */
+function UnderReview({ box, userId }: { box: Box; userId: string }) {
+  const rejected = box.status === "rejeitado";
+  return (
+    <div className="container-page py-8">
+      <div className="mx-auto max-w-2xl">
+        <div className={`rounded-2xl border p-5 text-sm ${rejected ? "border-destructive/40 bg-destructive/10" : "border-secondary/40 bg-sun/20"}`}>
+          <p className="text-xs font-bold uppercase tracking-widest text-secondary">Habilitação comercial</p>
+          <h1 className="mt-1 font-display text-2xl font-semibold">
+            {rejected ? "Pedido de habilitação não aprovado" : "Seu pedido está em análise"}
+          </h1>
+          <p className="mt-2 text-muted-foreground">
+            {rejected
+              ? "Sua conta segue como cliente. Ajuste as informações abaixo e reenvie para uma nova análise."
+              : "Recebemos o cadastro do seu box. Enquanto a equipe analisa, sua conta continua como cliente e o painel de vendas fica bloqueado. Você será liberado assim que o administrador aprovar."}
+          </p>
+          {box.review_note && <p className="mt-2 rounded-lg bg-background/70 p-2 text-xs">Observação da equipe: {box.review_note}</p>}
+          <p className="mt-4 text-xs font-bold uppercase tracking-widest text-muted-foreground">Conversa com a equipe</p>
+          <BoxReviewChat className="mt-2" boxId={box.id} emptyText="Tire dúvidas com a equipe do Cultiva Vale sobre a análise do seu cadastro." />
+        </div>
+        <h2 className="mb-3 mt-8 font-display text-xl font-semibold">Dados enviados</h2>
+        <BoxForm userId={userId} box={box} />
+      </div>
+    </div>
+  );
 }
 
 function Dashboard({ box, userId }: { box: Box; userId: string }) {
@@ -91,22 +125,6 @@ function Dashboard({ box, userId }: { box: Box; userId: string }) {
           <Link to="/box/$slug" params={{ slug: box.slug }}><ExternalLink className="mr-2 h-4 w-4" /> Ver página pública</Link>
         </Button>
       </div>
-
-      {box.status !== "aprovado" && (
-        <div className={`mt-5 rounded-2xl border p-4 text-sm ${box.status === "rejeitado" ? "border-destructive/40 bg-destructive/10" : "border-secondary/40 bg-sun/20"}`}>
-          <p className="font-semibold">
-            {box.status === "rejeitado" ? "Cadastro do box rejeitado" : "Box aguardando aprovação"}
-          </p>
-          <p className="mt-1 text-muted-foreground">
-            {box.status === "rejeitado"
-              ? "Seu box e produtos não aparecem no marketplace. Ajuste as informações abaixo e aguarde nova análise."
-              : "Você já pode cadastrar produtos, mas seu box só ficará visível para os compradores após a aprovação da equipe."}
-          </p>
-          {box.review_note && <p className="mt-2 rounded-lg bg-background/70 p-2 text-xs">Observação da equipe: {box.review_note}</p>}
-          <p className="mt-4 text-xs font-bold uppercase tracking-widest text-muted-foreground">Conversa com a equipe</p>
-          <BoxReviewChat className="mt-2" boxId={box.id} emptyText="Tire dúvidas com a equipe do Cultiva Vale sobre a análise do seu cadastro." />
-        </div>
-      )}
 
       <Tabs defaultValue="produtos" className="mt-6">
         <TabsList>
@@ -129,14 +147,19 @@ function Dashboard({ box, userId }: { box: Box; userId: string }) {
 function BoxForm({ userId, box }: { userId: string; box?: Box }) {
   const { refresh } = useAuth();
   const qc = useQueryClient();
+  const [draft] = useState(() => (box ? null : readSellerDraft()));
   const [logo, setLogo] = useState<string[]>(box?.logo_url ? [box.logo_url] : []);
   const [cover, setCover] = useState<string[]>(box?.cover_url ? [box.cover_url] : []);
   const [state, setState] = useState(box?.state ?? "SP");
   const [region, setRegion] = useState(box?.region ?? REGIONS[0]!);
+  const [mainCategory, setMainCategory] = useState<CategorySlug | "">(
+    box?.main_category ?? (CATEGORIES.some((c) => c.slug === draft?.main_category) ? (draft!.main_category as CategorySlug) : ""),
+  );
 
   const save = useMutation({
     mutationFn: async (fd: FormData) => {
       const name = String(fd.get("name")).trim();
+      if (!mainCategory) throw new Error("Selecione a categoria de atuação");
       const payload = {
         name,
         description: String(fd.get("description")).trim(),
@@ -145,6 +168,9 @@ function BoxForm({ userId, box }: { userId: string; box?: Box }) {
         state,
         region,
         whatsapp: String(fd.get("whatsapp")).trim() || null,
+        tax_id: String(fd.get("tax_id")).trim(),
+        address: String(fd.get("address")).trim(),
+        main_category: mainCategory,
         logo_url: logo[0] ?? null,
         cover_url: cover[0] ?? null,
       };
@@ -155,10 +181,11 @@ function BoxForm({ userId, box }: { userId: string; box?: Box }) {
         const slug = `${slugify(name)}-${Math.random().toString(36).slice(2, 6)}`;
         const { error } = await supabase.from("boxes").insert({ ...payload, slug, owner_id: userId });
         if (error) throw error;
+        clearSellerDraft();
       }
     },
     onSuccess: async () => {
-      toast.success(box ? "Box atualizado" : "Box criado! Enviamos para análise. Você poderá vender após a aprovação da equipe.");
+      toast.success(box ? "Dados atualizados" : "Pedido de habilitação enviado! Sua conta segue como cliente até a aprovação da equipe.");
       await refresh();
       qc.invalidateQueries({ queryKey: ["seller"] });
       qc.invalidateQueries({ queryKey: ["home"] });
@@ -180,7 +207,7 @@ function BoxForm({ userId, box }: { userId: string; box?: Box }) {
         <div className="space-y-4">
           <div className="space-y-1.5">
             <Label htmlFor="b-name">Nome do box</Label>
-            <Input id="b-name" name="name" required minLength={2} maxLength={60} defaultValue={box?.name} placeholder="Ex.: Sítio Flor do Vale" />
+            <Input id="b-name" name="name" required minLength={2} maxLength={60} defaultValue={box?.name ?? draft?.name} placeholder="Ex.: Sítio Flor do Vale" />
           </div>
           <div className="space-y-1.5">
             <Label htmlFor="b-desc">Descrição curta</Label>
@@ -192,10 +219,32 @@ function BoxForm({ userId, box }: { userId: string; box?: Box }) {
         <Label htmlFor="b-story">História do produtor / loja</Label>
         <Textarea id="b-story" name="story" rows={4} maxLength={2000} defaultValue={box?.story} placeholder="Conte de onde vem sua produção, há quanto tempo cultiva…" />
       </div>
+
+      <fieldset className="space-y-4 rounded-2xl border p-4">
+        <legend className="px-1 text-xs font-bold uppercase tracking-widest text-secondary">Dados fiscais e de atuação</legend>
+        <div className="grid gap-4 sm:grid-cols-2">
+          <div className="space-y-1.5">
+            <Label htmlFor="b-tax">CPF ou CNPJ</Label>
+            <Input id="b-tax" name="tax_id" required minLength={11} maxLength={20} defaultValue={box?.tax_id || draft?.tax_id} placeholder="000.000.000-00" />
+          </div>
+          <div className="space-y-1.5">
+            <Label>Categoria de atuação</Label>
+            <Select value={mainCategory} onValueChange={(v) => setMainCategory(v as CategorySlug)}>
+              <SelectTrigger aria-label="Categoria de atuação"><SelectValue placeholder="Selecione" /></SelectTrigger>
+              <SelectContent>{CATEGORIES.map((c) => <SelectItem key={c.slug} value={c.slug}>{c.name}</SelectItem>)}</SelectContent>
+            </Select>
+          </div>
+        </div>
+        <div className="space-y-1.5">
+          <Label htmlFor="b-addr">Endereço da propriedade / loja</Label>
+          <Input id="b-addr" name="address" required maxLength={160} defaultValue={box?.address || draft?.address} placeholder="Rua, número, bairro" />
+        </div>
+      </fieldset>
+
       <div className="grid gap-4 sm:grid-cols-3">
         <div className="space-y-1.5">
           <Label htmlFor="b-city">Cidade</Label>
-          <Input id="b-city" name="city" required maxLength={60} defaultValue={box?.city} placeholder="Registro" />
+          <Input id="b-city" name="city" required maxLength={60} defaultValue={box?.city ?? draft?.city} placeholder="Registro" />
         </div>
         <div className="space-y-1.5">
           <Label>Estado</Label>
@@ -214,9 +263,11 @@ function BoxForm({ userId, box }: { userId: string; box?: Box }) {
       </div>
       <div className="space-y-1.5">
         <Label htmlFor="b-wa">WhatsApp (opcional)</Label>
-        <Input id="b-wa" name="whatsapp" maxLength={20} defaultValue={box?.whatsapp ?? ""} placeholder="5513999999999" />
+        <Input id="b-wa" name="whatsapp" maxLength={20} defaultValue={box?.whatsapp ?? draft?.whatsapp ?? ""} placeholder="5513999999999" />
       </div>
-      <Button type="submit" className="rounded-full" disabled={save.isPending}>{box ? "Salvar alterações" : "Criar meu box"}</Button>
+      <Button type="submit" className="rounded-full" disabled={save.isPending}>
+        {box ? (box.status === "aprovado" ? "Salvar alterações" : "Reenviar para análise") : "Enviar pedido de habilitação"}
+      </Button>
     </form>
   );
 }
