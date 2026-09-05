@@ -87,7 +87,7 @@ function SettingsForm() {
   });
 
   if (q.isPending || !form) return <div className="container-page py-8"><Skeleton className="h-64 rounded-2xl" /></div>;
-  const meta = PROVIDERS[form.provider] ?? PROVIDERS.focus_nfe!;
+  const meta = PROVIDERS[form.provider] ?? PROVIDERS["focus_nfe"]!;
   const configured = !!form.api_token.trim();
 
   return (
