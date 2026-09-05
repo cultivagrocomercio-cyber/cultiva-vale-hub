@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { Minus, Plus, ShoppingBasket, Trash2 } from "lucide-react";
 import { toast } from "sonner";
@@ -6,7 +6,12 @@ import { useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useCart, type CartItem } from "@/lib/cart";
 import { useAuth } from "@/lib/auth";
-import { formatPrice } from "@/lib/categories";
+import { STATES, formatPrice } from "@/lib/categories";
+import { detectTaxKind, formatTaxId, isValidCNPJ, isValidCPF, isValidIE, onlyDigits } from "@/lib/fiscal";
+import { formatCep, type BuyerFiscal } from "@/lib/nfe";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 
@@ -24,11 +29,28 @@ export const Route = createFileRoute("/carrinho")({
 
 function CartPage() {
   const cart = useCart();
-  const { user, loading } = useAuth();
+  const { user, loading, profile } = useAuth();
   const navigate = useNavigate();
   const qc = useQueryClient();
   const [notes, setNotes] = useState("");
   const [busy, setBusy] = useState(false);
+  const [fiscal, setFiscal] = useState<BuyerFiscal>({ legal_name: "", tax_id: "", state_registration: "", address: "", cep: "", city: "", state: "SP" });
+
+  // Pré-preenche com os dados de faturamento salvos no perfil
+  useEffect(() => {
+    if (!profile) return;
+    setFiscal((f) => ({
+      legal_name: f.legal_name || profile.legal_name || profile.full_name || "",
+      tax_id: f.tax_id || formatTaxId(profile.tax_id || ""),
+      state_registration: f.state_registration || profile.state_registration || "",
+      address: f.address || profile.address || "",
+      cep: f.cep || formatCep(profile.cep || ""),
+      city: f.city || profile.city || "",
+      state: f.state !== "SP" ? f.state : profile.state || "SP",
+    }));
+  }, [profile]);
+
+  const fiscalErrors = validateBuyerFiscal(fiscal);
 
   const groups = cart.items.reduce<Record<string, CartItem[]>>((acc, i) => {
     (acc[i.boxId] ??= []).push(i);
@@ -42,6 +64,10 @@ function CartPage() {
       navigate({ to: "/auth" });
       return;
     }
+    if (fiscalErrors.length) {
+      toast.error(fiscalErrors[0]);
+      return;
+    }
     setBusy(true);
     try {
       for (const boxId of boxIds) {
@@ -50,6 +76,7 @@ function CartPage() {
           _box_id: boxId,
           _notes: notes,
           _items: items.map((i) => ({ product_id: i.productId, product_name: i.name, quantity: i.quantity })),
+          _buyer_fiscal: { ...fiscal, tax_id: onlyDigits(fiscal.tax_id), cep: onlyDigits(fiscal.cep), state_registration: onlyDigits(fiscal.state_registration) },
         });
         if (error) throw error;
       }
@@ -130,9 +157,35 @@ function CartPage() {
           <h2 className="font-semibold">Resumo</h2>
           <div className="mt-3 flex justify-between text-sm"><span>{cart.count} itens</span><span>{formatPrice(cart.total)}</span></div>
           <div className="mt-1 flex justify-between font-display text-xl font-semibold"><span>Total</span><span className="text-primary">{formatPrice(cart.total)}</span></div>
+          {user && (
+            <fieldset className="mt-4 space-y-3 rounded-xl border p-3">
+              <legend className="px-1 text-xs font-bold uppercase tracking-widest text-secondary">Dados para a nota fiscal</legend>
+              <p className="text-xs text-muted-foreground">Obrigatórios para o vendedor emitir a NF-e. Ficam salvos para as próximas compras.</p>
+              <Field id="f-name" label="Nome completo / Razão social" value={fiscal.legal_name} onChange={(v) => setFiscal({ ...fiscal, legal_name: v })} maxLength={120} />
+              <div className="grid grid-cols-2 gap-2">
+                <Field id="f-tax" label="CPF / CNPJ" value={fiscal.tax_id} onChange={(v) => setFiscal({ ...fiscal, tax_id: formatTaxId(v) })} maxLength={18} inputMode="numeric" />
+                <Field id="f-ie" label="Inscrição Estadual (se houver)" value={fiscal.state_registration} onChange={(v) => setFiscal({ ...fiscal, state_registration: onlyDigits(v) })} maxLength={14} inputMode="numeric" required={false} />
+              </div>
+              <Field id="f-addr" label="Endereço completo" value={fiscal.address} onChange={(v) => setFiscal({ ...fiscal, address: v })} maxLength={160} placeholder="Rua, número, complemento, bairro" />
+              <div className="grid grid-cols-[1fr_1fr_72px] gap-2">
+                <Field id="f-cep" label="CEP" value={fiscal.cep} onChange={(v) => setFiscal({ ...fiscal, cep: formatCep(v) })} maxLength={9} inputMode="numeric" />
+                <Field id="f-city" label="Cidade" value={fiscal.city} onChange={(v) => setFiscal({ ...fiscal, city: v })} maxLength={60} />
+                <div className="space-y-1">
+                  <Label className="text-xs">UF</Label>
+                  <Select value={fiscal.state} onValueChange={(v) => setFiscal({ ...fiscal, state: v })}>
+                    <SelectTrigger className="h-9" aria-label="UF"><SelectValue /></SelectTrigger>
+                    <SelectContent>{STATES.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}</SelectContent>
+                  </Select>
+                </div>
+              </div>
+              {fiscalErrors.length > 0 && (fiscal.tax_id || fiscal.cep) && (
+                <p className="text-xs text-destructive" role="alert">{fiscalErrors[0]}</p>
+              )}
+            </fieldset>
+          )}
           <label className="mt-4 block text-sm font-semibold" htmlFor="notes">Observações para o vendedor</label>
           <Textarea id="notes" value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Endereço, forma de entrega preferida, dúvidas…" className="mt-1" maxLength={500} />
-          <Button className="mt-4 w-full rounded-full" size="lg" onClick={checkout} disabled={busy || loading}>
+          <Button className="mt-4 w-full rounded-full" size="lg" onClick={checkout} disabled={busy || loading || (!!user && fiscalErrors.length > 0)}>
             {user ? "Enviar pedido" : "Entrar para finalizar"}
           </Button>
           <p className="mt-3 text-xs text-muted-foreground">
@@ -142,4 +195,30 @@ function CartPage() {
       </div>
     </div>
   );
+}
+
+function Field({ id, label, value, onChange, required = true, ...rest }: {
+  id: string; label: string; value: string; onChange: (v: string) => void; required?: boolean;
+  maxLength?: number; placeholder?: string; inputMode?: "numeric" | "text";
+}) {
+  return (
+    <div className="space-y-1">
+      <Label htmlFor={id} className="text-xs">{label}</Label>
+      <Input id={id} className="h-9" value={value} required={required} onChange={(e) => onChange(e.target.value)} {...rest} />
+    </div>
+  );
+}
+
+function validateBuyerFiscal(f: BuyerFiscal): string[] {
+  const errs: string[] = [];
+  if (f.legal_name.trim().length < 3) errs.push("Informe o nome completo ou razão social");
+  const kind = detectTaxKind(f.tax_id);
+  if (!kind) errs.push("Informe um CPF ou CNPJ válido");
+  else if (kind === "cpf" && !isValidCPF(f.tax_id)) errs.push("CPF inválido");
+  else if (kind === "cnpj" && !isValidCNPJ(f.tax_id)) errs.push("CNPJ inválido");
+  if (f.address.trim().length < 5) errs.push("Informe o endereço completo");
+  if (onlyDigits(f.cep).length !== 8) errs.push("Informe um CEP válido");
+  if (f.city.trim().length < 2) errs.push("Informe a cidade");
+  if (onlyDigits(f.state_registration) && !isValidIE(f.state_registration, f.state)) errs.push(`Inscrição Estadual inválida para ${f.state}`);
+  return errs;
 }
