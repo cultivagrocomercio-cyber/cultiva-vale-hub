@@ -18,6 +18,7 @@ import { CATEGORIES } from "@/lib/categories";
 import { useAuth } from "@/lib/auth";
 import { useCart } from "@/lib/cart";
 import { CategoryIcon } from "@/components/ProductCard";
+import { NotificationsBell } from "@/components/NotificationsBell";
 
 function SearchForm({ onDone }: { onDone?: () => void }) {
   const navigate = useNavigate();
@@ -157,6 +158,8 @@ export function Header() {
           {loading ? (
             <div className="h-9 w-9 animate-pulse rounded-full bg-muted" />
           ) : user ? (
+            <>
+            <NotificationsBell />
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="outline" className="h-9 gap-2 rounded-full pl-1.5 pr-3">
