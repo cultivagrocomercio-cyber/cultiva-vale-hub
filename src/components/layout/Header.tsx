@@ -190,6 +190,7 @@ export function Header() {
                 <DropdownMenuItem onClick={handleSignOut}><LogOut className="mr-2 h-4 w-4" /> Sair</DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
+            </>
           ) : (
             <Button asChild size="sm" className="rounded-full">
               <Link to="/auth">Entrar</Link>
