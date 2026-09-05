@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { BoxReviewCard, STATUS_LABEL, type BoxWithOwner } from "@/components/admin/BoxReviewCard";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Check, ClipboardList, Package, Settings, ShieldCheck, Store } from "lucide-react";
+import { Check, ClipboardList, Package, Settings, ShieldCheck, Star, Store } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import type { Tables } from "@/integrations/supabase/types";
@@ -88,6 +88,9 @@ function AdminDashboard() {
         <div className="flex flex-wrap gap-2">
           <Button asChild variant="outline" className="rounded-full">
             <Link to="/admin/configuracoes"><Settings className="mr-2 h-4 w-4" /> Configurações</Link>
+          </Button>
+          <Button asChild variant="outline" className="rounded-full">
+            <Link to="/admin/avaliacoes"><Star className="mr-2 h-4 w-4" /> Avaliações</Link>
           </Button>
           <Button asChild className="rounded-full">
             <Link to="/admin/solicitacoes"><ClipboardList className="mr-2 h-4 w-4" /> Solicitações de boxes{pending.length > 0 && ` (${pending.length})`}</Link>

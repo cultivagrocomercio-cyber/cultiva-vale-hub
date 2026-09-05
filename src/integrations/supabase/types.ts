@@ -147,6 +147,8 @@ export type Database = {
           name: string
           owner_id: string
           plan: Database["public"]["Enums"]["box_plan"]
+          rating_avg: number | null
+          rating_count: number
           region: string
           review_note: string
           reviewed_at: string | null
@@ -172,6 +174,8 @@ export type Database = {
           name: string
           owner_id: string
           plan?: Database["public"]["Enums"]["box_plan"]
+          rating_avg?: number | null
+          rating_count?: number
           region?: string
           review_note?: string
           reviewed_at?: string | null
@@ -197,6 +201,8 @@ export type Database = {
           name?: string
           owner_id?: string
           plan?: Database["public"]["Enums"]["box_plan"]
+          rating_avg?: number | null
+          rating_count?: number
           region?: string
           review_note?: string
           reviewed_at?: string | null
@@ -558,6 +564,8 @@ export type Database = {
           name: string
           ncm: string
           price: number
+          rating_avg: number | null
+          rating_count: number
           stock: number
           subcategory: string
           updated_at: string
@@ -573,6 +581,8 @@ export type Database = {
           name: string
           ncm?: string
           price: number
+          rating_avg?: number | null
+          rating_count?: number
           stock?: number
           subcategory: string
           updated_at?: string
@@ -588,6 +598,8 @@ export type Database = {
           name?: string
           ncm?: string
           price?: number
+          rating_avg?: number | null
+          rating_count?: number
           stock?: number
           subcategory?: string
           updated_at?: string
@@ -658,7 +670,13 @@ export type Database = {
           created_at: string
           id: string
           order_id: string
+          product_rating: number
           rating: number
+          report_reason: string
+          reported: boolean
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: Database["public"]["Enums"]["review_status"]
         }
         Insert: {
           box_id: string
@@ -667,7 +685,13 @@ export type Database = {
           created_at?: string
           id?: string
           order_id: string
+          product_rating: number
           rating: number
+          report_reason?: string
+          reported?: boolean
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: Database["public"]["Enums"]["review_status"]
         }
         Update: {
           box_id?: string
@@ -676,7 +700,13 @@ export type Database = {
           created_at?: string
           id?: string
           order_id?: string
+          product_rating?: number
           rating?: number
+          report_reason?: string
+          reported?: boolean
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: Database["public"]["Enums"]["review_status"]
         }
         Relationships: [
           {
@@ -749,7 +779,15 @@ export type Database = {
         Args: { _plan: Database["public"]["Enums"]["box_plan"] }
         Returns: number
       }
+      recompute_ratings: {
+        Args: { _box_id: string; _order_id: string }
+        Returns: undefined
+      }
       release_due_orders: { Args: never; Returns: number }
+      report_review: {
+        Args: { _reason: string; _review_id: string }
+        Returns: undefined
+      }
     }
     Enums: {
       app_role: "admin" | "seller" | "buyer"
@@ -771,6 +809,7 @@ export type Database = {
         | "em_disputa"
         | "cancelado"
       product_category: "plantas" | "insumos" | "maquinas"
+      review_status: "aprovada" | "oculta"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -919,6 +958,7 @@ export const Constants = {
         "cancelado",
       ],
       product_category: ["plantas", "insumos", "maquinas"],
+      review_status: ["aprovada", "oculta"],
     },
   },
 } as const

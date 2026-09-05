@@ -348,19 +348,26 @@ function ReviewBlock({ order }: { order: OrderWithItems }) {
   const { user } = useAuth();
   const qc = useQueryClient();
   const [rating, setRating] = useState(5);
+  const [productRating, setProductRating] = useState(5);
   const [comment, setComment] = useState("");
   const { data: existing } = useQuery({
     queryKey: ["review", order.id],
-    queryFn: async () => (await supabase.from("reviews").select("rating, comment").eq("order_id", order.id).maybeSingle()).data,
+    queryFn: async () => (await supabase.from("reviews").select("rating, product_rating, comment, status").eq("order_id", order.id).maybeSingle()).data,
   });
+  const trimmed = comment.trim();
+  const commentError = trimmed.length > 0 && trimmed.length < 10 ? "O comentário precisa ter pelo menos 10 caracteres" : trimmed.length > 500 ? "Máximo de 500 caracteres" : null;
   const send = useMutation({
     mutationFn: async () => {
-      const { error } = await supabase.from("reviews").insert({ order_id: order.id, box_id: order.box_id, buyer_id: user!.id, rating, comment });
+      if (commentError) throw new Error(commentError);
+      const { error } = await supabase.from("reviews").insert({ order_id: order.id, box_id: order.box_id, buyer_id: user!.id, rating, product_rating: productRating, comment: trimmed });
       if (error) throw error;
     },
     onSuccess: () => {
       toast.success("Avaliação enviada. Obrigado!");
       qc.invalidateQueries({ queryKey: ["review", order.id] });
+      qc.invalidateQueries({ queryKey: ["home"] });
+      qc.invalidateQueries({ queryKey: ["box"] });
+      qc.invalidateQueries({ queryKey: ["product"] });
     },
     onError: (e) => toast.error(e.message),
   });
@@ -368,18 +375,37 @@ function ReviewBlock({ order }: { order: OrderWithItems }) {
   if (existing) {
     return (
       <div className="border-t px-4 py-3">
-        <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Sua avaliação</p>
-        <RatingStars value={existing.rating} className="mt-1" />
+        <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Sua avaliação {existing.status === "oculta" && <span className="ml-1 rounded-full bg-muted px-2 py-0.5 normal-case tracking-normal">oculta pela moderação</span>}</p>
+        <div className="mt-1 flex flex-wrap gap-x-6 gap-y-1 text-xs text-muted-foreground">
+          <span className="flex items-center gap-1.5">Produto <RatingStars value={existing.product_rating} /></span>
+          <span className="flex items-center gap-1.5">Box <RatingStars value={existing.rating} /></span>
+        </div>
         {existing.comment && <p className="mt-1 text-sm text-muted-foreground">{existing.comment}</p>}
       </div>
     );
   }
+  const productLabel = order.order_items.length === 1 ? order.order_items[0]!.product_name : `${order.order_items.length} produtos do pedido`;
   return (
     <div className="border-t bg-soil-grain px-4 py-3">
-      <p className="text-sm font-semibold">Como foi sua experiência com este box?</p>
-      <RatingStars value={rating} interactive onChange={setRating} size="md" className="mt-2" />
-      <Textarea value={comment} onChange={(e) => setComment(e.target.value)} placeholder="Conte como foi (opcional)" className="mt-2 bg-card" maxLength={400} />
-      <Button size="sm" className="mt-2 rounded-full" onClick={() => send.mutate()} disabled={send.isPending}>Enviar avaliação</Button>
+      <p className="text-sm font-semibold">Como foi sua compra?</p>
+      <div className="mt-2 grid gap-3 sm:grid-cols-2">
+        <div className="rounded-xl bg-card p-3">
+          <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Nota do produto</p>
+          <p className="truncate text-xs text-muted-foreground">{productLabel}</p>
+          <RatingStars value={productRating} interactive onChange={setProductRating} size="md" className="mt-1" />
+        </div>
+        <div className="rounded-xl bg-card p-3">
+          <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Nota do box vendedor</p>
+          <p className="truncate text-xs text-muted-foreground">{order.boxes?.name ?? "Atendimento"}</p>
+          <RatingStars value={rating} interactive onChange={setRating} size="md" className="mt-1" />
+        </div>
+      </div>
+      <Textarea value={comment} onChange={(e) => setComment(e.target.value)} placeholder="Comentário (opcional, de 10 a 500 caracteres)" className="mt-2 bg-card" maxLength={500} />
+      <div className="mt-1 flex items-center justify-between text-xs">
+        <span className={commentError ? "text-destructive" : "text-muted-foreground"}>{commentError ?? "Uma avaliação por pedido concluído."}</span>
+        <span className="tabular-nums text-muted-foreground">{trimmed.length}/500</span>
+      </div>
+      <Button size="sm" className="mt-2 rounded-full" onClick={() => send.mutate()} disabled={send.isPending || !!commentError}>Enviar avaliação</Button>
     </div>
   );
 }

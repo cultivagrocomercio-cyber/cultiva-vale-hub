@@ -18,6 +18,7 @@ import { Route as MeusPedidosRouteImport } from './routes/meus-pedidos'
 import { Route as PainelRouteImport } from './routes/painel'
 import { Route as PainelVendedorRouteImport } from './routes/painel-vendedor'
 import { Route as PerfilRouteImport } from './routes/perfil'
+import { Route as AdminAvaliacoesRouteImport } from './routes/admin_.avaliacoes'
 import { Route as AdminConfiguracoesRouteImport } from './routes/admin_.configuracoes'
 import { Route as AdminSolicitacoesRouteImport } from './routes/admin_.solicitacoes'
 import { Route as BoxSlugRouteImport } from './routes/box.$slug'
@@ -70,6 +71,11 @@ const PerfilRoute = PerfilRouteImport.update({
   path: '/perfil',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminAvaliacoesRoute = AdminAvaliacoesRouteImport.update({
+  id: '/admin_/avaliacoes',
+  path: '/admin/avaliacoes',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AdminConfiguracoesRoute = AdminConfiguracoesRouteImport.update({
   id: '/admin_/configuracoes',
   path: '/admin/configuracoes',
@@ -112,6 +118,7 @@ export interface FileRoutesByFullPath {
   '/painel': typeof PainelRoute
   '/painel-vendedor': typeof PainelVendedorRoute
   '/perfil': typeof PerfilRoute
+  '/admin/avaliacoes': typeof AdminAvaliacoesRoute
   '/admin/configuracoes': typeof AdminConfiguracoesRoute
   '/admin/solicitacoes': typeof AdminSolicitacoesRoute
   '/box/$slug': typeof BoxSlugRoute
@@ -129,6 +136,7 @@ export interface FileRoutesByTo {
   '/painel': typeof PainelRoute
   '/painel-vendedor': typeof PainelVendedorRoute
   '/perfil': typeof PerfilRoute
+  '/admin/avaliacoes': typeof AdminAvaliacoesRoute
   '/admin/configuracoes': typeof AdminConfiguracoesRoute
   '/admin/solicitacoes': typeof AdminSolicitacoesRoute
   '/box/$slug': typeof BoxSlugRoute
@@ -147,6 +155,7 @@ export interface FileRoutesById {
   '/painel': typeof PainelRoute
   '/painel-vendedor': typeof PainelVendedorRoute
   '/perfil': typeof PerfilRoute
+  '/admin_/avaliacoes': typeof AdminAvaliacoesRoute
   '/admin_/configuracoes': typeof AdminConfiguracoesRoute
   '/admin_/solicitacoes': typeof AdminSolicitacoesRoute
   '/box/$slug': typeof BoxSlugRoute
@@ -166,6 +175,7 @@ export interface FileRouteTypes {
     | '/painel'
     | '/painel-vendedor'
     | '/perfil'
+    | '/admin/avaliacoes'
     | '/admin/configuracoes'
     | '/admin/solicitacoes'
     | '/box/$slug'
@@ -183,6 +193,7 @@ export interface FileRouteTypes {
     | '/painel'
     | '/painel-vendedor'
     | '/perfil'
+    | '/admin/avaliacoes'
     | '/admin/configuracoes'
     | '/admin/solicitacoes'
     | '/box/$slug'
@@ -200,6 +211,7 @@ export interface FileRouteTypes {
     | '/painel'
     | '/painel-vendedor'
     | '/perfil'
+    | '/admin_/avaliacoes'
     | '/admin_/configuracoes'
     | '/admin_/solicitacoes'
     | '/box/$slug'
@@ -218,6 +230,7 @@ export interface RootRouteChildren {
   PainelRoute: typeof PainelRoute
   PainelVendedorRoute: typeof PainelVendedorRoute
   PerfilRoute: typeof PerfilRoute
+  AdminAvaliacoesRoute: typeof AdminAvaliacoesRoute
   AdminConfiguracoesRoute: typeof AdminConfiguracoesRoute
   AdminSolicitacoesRoute: typeof AdminSolicitacoesRoute
   BoxSlugRoute: typeof BoxSlugRoute
@@ -291,6 +304,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PerfilRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin_/avaliacoes': {
+      id: '/admin_/avaliacoes'
+      path: '/admin/avaliacoes'
+      fullPath: '/admin/avaliacoes'
+      preLoaderRoute: typeof AdminAvaliacoesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/admin_/configuracoes': {
       id: '/admin_/configuracoes'
       path: '/admin/configuracoes'
@@ -346,6 +366,7 @@ const rootRouteChildren: RootRouteChildren = {
   PainelRoute: PainelRoute,
   PainelVendedorRoute: PainelVendedorRoute,
   PerfilRoute: PerfilRoute,
+  AdminAvaliacoesRoute: AdminAvaliacoesRoute,
   AdminConfiguracoesRoute: AdminConfiguracoesRoute,
   AdminSolicitacoesRoute: AdminSolicitacoesRoute,
   BoxSlugRoute: BoxSlugRoute,
