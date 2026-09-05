@@ -564,6 +564,7 @@ export type Database = {
           description: string
           id: string
           images: string[]
+          low_stock_threshold: number
           name: string
           ncm: string
           price: number
@@ -581,6 +582,7 @@ export type Database = {
           description?: string
           id?: string
           images?: string[]
+          low_stock_threshold?: number
           name: string
           ncm?: string
           price: number
@@ -598,6 +600,7 @@ export type Database = {
           description?: string
           id?: string
           images?: string[]
+          low_stock_threshold?: number
           name?: string
           ncm?: string
           price?: number
