@@ -12,6 +12,7 @@ import { useAuth } from "@/lib/auth";
 import { StorageImage } from "./StorageImage";
 import { RatingStars } from "./RatingStars";
 import { OrderTimeline } from "./OrderTimeline";
+import { InvoiceDownloads } from "./InvoiceDownloads";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -195,6 +196,7 @@ export function OrderCard({
       </div>
 
       {s === "pendente_pagamento" && <PaymentBlock order={order} role={role} />}
+      {isPaidOrder(order) && <InvoiceDownloads orderId={order.id} />}
       {order.notes && <p className="border-t px-4 py-3 text-xs text-muted-foreground">Observações: {order.notes}</p>}
       {role === "buyer" && s === "concluido_liquidado" && <ReviewBlock order={order} />}
       {chatOpen && <OrderChat orderId={order.id} />}
