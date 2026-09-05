@@ -14,6 +14,94 @@ export type Database = {
   }
   public: {
     Tables: {
+      box_certificate_secrets: {
+        Row: {
+          box_id: string
+          created_at: string
+          password_ciphertext: string
+          password_iv: string
+          storage_path: string
+          updated_at: string
+        }
+        Insert: {
+          box_id: string
+          created_at?: string
+          password_ciphertext: string
+          password_iv: string
+          storage_path: string
+          updated_at?: string
+        }
+        Update: {
+          box_id?: string
+          created_at?: string
+          password_ciphertext?: string
+          password_iv?: string
+          storage_path?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "box_certificate_secrets_box_id_fkey"
+            columns: ["box_id"]
+            isOneToOne: true
+            referencedRelation: "boxes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      box_certificates: {
+        Row: {
+          box_id: string
+          created_at: string
+          file_name: string
+          holder_name: string
+          holder_tax_id: string
+          id: string
+          issuer: string
+          not_after: string | null
+          not_before: string | null
+          status: Database["public"]["Enums"]["cert_status"]
+          updated_at: string
+          uploaded_by: string | null
+        }
+        Insert: {
+          box_id: string
+          created_at?: string
+          file_name?: string
+          holder_name?: string
+          holder_tax_id?: string
+          id?: string
+          issuer?: string
+          not_after?: string | null
+          not_before?: string | null
+          status: Database["public"]["Enums"]["cert_status"]
+          updated_at?: string
+          uploaded_by?: string | null
+        }
+        Update: {
+          box_id?: string
+          created_at?: string
+          file_name?: string
+          holder_name?: string
+          holder_tax_id?: string
+          id?: string
+          issuer?: string
+          not_after?: string | null
+          not_before?: string | null
+          status?: Database["public"]["Enums"]["cert_status"]
+          updated_at?: string
+          uploaded_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "box_certificates_box_id_fkey"
+            columns: ["box_id"]
+            isOneToOne: true
+            referencedRelation: "boxes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       box_review_messages: {
         Row: {
           box_id: string
@@ -638,6 +726,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      has_valid_certificate: { Args: { _box_id: string }; Returns: boolean }
       is_box_approved: { Args: { _box_id: string }; Returns: boolean }
       is_box_owner: { Args: { _box_id: string }; Returns: boolean }
       is_valid_cnpj: { Args: { _v: string }; Returns: boolean }
@@ -666,6 +755,7 @@ export type Database = {
       app_role: "admin" | "seller" | "buyer"
       box_plan: "basico" | "intermediario" | "premium"
       box_status: "pendente" | "aprovado" | "rejeitado" | "suspenso"
+      cert_status: "valido" | "expirado" | "senha_incorreta" | "invalido"
       nfe_status:
         | "pendente_emissao"
         | "processando_sefaz"
@@ -811,6 +901,7 @@ export const Constants = {
       app_role: ["admin", "seller", "buyer"],
       box_plan: ["basico", "intermediario", "premium"],
       box_status: ["pendente", "aprovado", "rejeitado", "suspenso"],
+      cert_status: ["valido", "expirado", "senha_incorreta", "invalido"],
       nfe_status: [
         "pendente_emissao",
         "processando_sefaz",
