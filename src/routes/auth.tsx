@@ -6,6 +6,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { CATEGORIES } from "@/lib/categories";
 import { SELLER_DRAFT_KEY } from "@/lib/seller-draft";
+import { FISCAL_RULES, detectTaxKind, isValidCNPJ, isValidCPF, onlyDigits } from "@/lib/fiscal";
+import type { CategorySlug } from "@/lib/categories";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -57,12 +59,22 @@ function AuthPage() {
     const phone = String(fd.get("phone") ?? "").trim();
     const isSeller = intent === "vender";
     if (isSeller) {
+      const taxId = String(fd.get("tax_id") ?? "");
+      const cat = String(fd.get("main_category") ?? "") as CategorySlug;
+      const kind = detectTaxKind(taxId);
+      if (!kind) { toast.error("Informe um CPF (11 dígitos) ou CNPJ (14 dígitos) válido"); return; }
+      if (kind === "cpf" && !isValidCPF(taxId)) { toast.error("CPF inválido: confira os dígitos verificadores"); return; }
+      if (kind === "cnpj" && !isValidCNPJ(taxId)) { toast.error("CNPJ inválido: confira os dígitos verificadores"); return; }
+      if (kind === "cpf" && cat && !FISCAL_RULES[cat]?.allowCpf) {
+        toast.error(`A categoria ${FISCAL_RULES[cat].label.toLowerCase()} exige CNPJ — pessoa física não pode vender nessa categoria`);
+        return;
+      }
       // Guarda o rascunho da habilitação comercial para o formulário do box (status PENDENTE)
       localStorage.setItem(
         SELLER_DRAFT_KEY,
         JSON.stringify({
           name: String(fd.get("business_name") ?? "").trim(),
-          tax_id: String(fd.get("tax_id") ?? "").trim(),
+          tax_id: onlyDigits(String(fd.get("tax_id") ?? "")),
           city: String(fd.get("city") ?? "").trim(),
           address: String(fd.get("address") ?? "").trim(),
           main_category: String(fd.get("main_category") ?? ""),
@@ -158,7 +170,8 @@ function AuthPage() {
                   </div>
                   <div className="space-y-1.5">
                     <Label htmlFor="su-tax">CPF ou CNPJ</Label>
-                    <Input id="su-tax" name="tax_id" required minLength={11} maxLength={20} placeholder="000.000.000-00" />
+                    <Input id="su-tax" name="tax_id" required inputMode="numeric" minLength={11} maxLength={18} placeholder="000.000.000-00 ou 00.000.000/0000-00" />
+                    <p className="text-xs text-muted-foreground">Plantas e mudas: CPF ou CNPJ + Inscrição Estadual de produtor rural. Insumos e máquinas: somente CNPJ. A IE é informada na etapa seguinte.</p>
                   </div>
                   <div className="grid gap-4 sm:grid-cols-2">
                     <div className="space-y-1.5">

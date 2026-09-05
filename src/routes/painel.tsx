@@ -9,6 +9,7 @@ import { useAuth } from "@/lib/auth";
 import { CATEGORIES, CATEGORY_MAP, ORDER_STATUS_LABEL, REGIONS, STATES, formatPrice, slugify, type CategorySlug } from "@/lib/categories";
 import { PLANS, formatRate, isInEscrow, isPaidOrder, isSettledOrder } from "@/lib/commission";
 import { clearSellerDraft, readSellerDraft } from "@/lib/seller-draft";
+import { FISCAL_RULES, detectTaxKind, formatTaxId, onlyDigits, validateFiscal } from "@/lib/fiscal";
 import { ImageUploader } from "@/components/ImageUploader";
 import { BoxReviewChat } from "@/components/BoxReviewChat";
 import { PlanCard } from "@/components/PlanCard";
@@ -163,6 +164,8 @@ function BoxForm({ userId, box }: { userId: string; box?: Box }) {
   const [cover, setCover] = useState<string[]>(box?.cover_url ? [box.cover_url] : []);
   const [state, setState] = useState(box?.state ?? "SP");
   const [region, setRegion] = useState(box?.region ?? REGIONS[0]!);
+  const [taxId, setTaxId] = useState(formatTaxId(box?.tax_id || draft?.tax_id || ""));
+  const [ie, setIe] = useState(box?.state_registration ?? "");
   const [mainCategory, setMainCategory] = useState<CategorySlug | "">(
     box?.main_category ?? (CATEGORIES.some((c) => c.slug === draft?.main_category) ? (draft!.main_category as CategorySlug) : ""),
   );
@@ -171,6 +174,8 @@ function BoxForm({ userId, box }: { userId: string; box?: Box }) {
     mutationFn: async (fd: FormData) => {
       const name = String(fd.get("name")).trim();
       if (!mainCategory) throw new Error("Selecione a categoria de atuação");
+      const fiscalErrors = validateFiscal({ category: mainCategory, taxId, stateRegistration: ie, uf: state });
+      if (fiscalErrors.length) throw new Error(fiscalErrors[0]);
       const payload = {
         name,
         description: String(fd.get("description")).trim(),
@@ -179,7 +184,8 @@ function BoxForm({ userId, box }: { userId: string; box?: Box }) {
         state,
         region,
         whatsapp: String(fd.get("whatsapp")).trim() || null,
-        tax_id: String(fd.get("tax_id")).trim(),
+        tax_id: onlyDigits(taxId),
+        state_registration: onlyDigits(ie),
         address: String(fd.get("address")).trim(),
         main_category: mainCategory,
         logo_url: logo[0] ?? null,
@@ -205,6 +211,9 @@ function BoxForm({ userId, box }: { userId: string; box?: Box }) {
     },
     onError: (e) => toast.error(e.message),
   });
+
+  const fiscalErrors = validateFiscal({ category: mainCategory || null, taxId, stateRegistration: ie, uf: state });
+  const taxKind = detectTaxKind(taxId);
 
   return (
     <form
@@ -235,19 +244,55 @@ function BoxForm({ userId, box }: { userId: string; box?: Box }) {
 
       <fieldset className="space-y-4 rounded-2xl border p-4">
         <legend className="px-1 text-xs font-bold uppercase tracking-widest text-secondary">Dados fiscais e de atuação</legend>
+        <div className="space-y-1.5">
+          <Label>Categoria de atuação</Label>
+          <Select value={mainCategory} onValueChange={(v) => setMainCategory(v as CategorySlug)}>
+            <SelectTrigger aria-label="Categoria de atuação"><SelectValue placeholder="Selecione" /></SelectTrigger>
+            <SelectContent>{CATEGORIES.map((c) => <SelectItem key={c.slug} value={c.slug}>{c.name}</SelectItem>)}</SelectContent>
+          </Select>
+          {mainCategory && (
+            <p className="text-xs text-muted-foreground">
+              <span className="font-semibold text-foreground">{FISCAL_RULES[mainCategory].label}:</span> {FISCAL_RULES[mainCategory].help}
+            </p>
+          )}
+        </div>
         <div className="grid gap-4 sm:grid-cols-2">
           <div className="space-y-1.5">
-            <Label htmlFor="b-tax">CPF ou CNPJ</Label>
-            <Input id="b-tax" name="tax_id" required minLength={11} maxLength={20} defaultValue={box?.tax_id || draft?.tax_id} placeholder="000.000.000-00" />
+            <Label htmlFor="b-tax">{mainCategory && !FISCAL_RULES[mainCategory].allowCpf ? "CNPJ" : "CPF ou CNPJ"}</Label>
+            <Input
+              id="b-tax"
+              name="tax_id"
+              required
+              inputMode="numeric"
+              value={taxId}
+              onChange={(e) => setTaxId(formatTaxId(e.target.value))}
+              maxLength={18}
+              placeholder={mainCategory && !FISCAL_RULES[mainCategory].allowCpf ? "00.000.000/0000-00" : "000.000.000-00 ou 00.000.000/0000-00"}
+              aria-invalid={fiscalErrors.some((e) => /CPF|CNPJ/.test(e)) || undefined}
+            />
+            {taxKind && <p className="text-xs text-muted-foreground">{taxKind === "cpf" ? "Pessoa física (CPF)" : "Pessoa jurídica (CNPJ)"}</p>}
           </div>
           <div className="space-y-1.5">
-            <Label>Categoria de atuação</Label>
-            <Select value={mainCategory} onValueChange={(v) => setMainCategory(v as CategorySlug)}>
-              <SelectTrigger aria-label="Categoria de atuação"><SelectValue placeholder="Selecione" /></SelectTrigger>
-              <SelectContent>{CATEGORIES.map((c) => <SelectItem key={c.slug} value={c.slug}>{c.name}</SelectItem>)}</SelectContent>
-            </Select>
+            <Label htmlFor="b-ie">Inscrição Estadual {mainCategory === "plantas" ? <span className="text-destructive">*</span> : <span className="text-muted-foreground">(opcional)</span>}</Label>
+            <Input
+              id="b-ie"
+              name="state_registration"
+              inputMode="numeric"
+              required={mainCategory === "plantas"}
+              value={ie}
+              onChange={(e) => setIe(onlyDigits(e.target.value))}
+              maxLength={14}
+              placeholder={state === "SP" ? "CADESP — 12 dígitos" : "Somente números"}
+              aria-invalid={fiscalErrors.some((e) => /Inscrição/.test(e)) || undefined}
+            />
+            {mainCategory === "plantas" && <p className="text-xs text-muted-foreground">IE de Produtor Rural ativa na UF {state}.</p>}
           </div>
         </div>
+        {fiscalErrors.length > 0 && (taxId || ie || mainCategory) && (
+          <ul className="space-y-1 rounded-lg border border-destructive/40 bg-destructive/10 p-3 text-xs text-destructive" role="alert">
+            {fiscalErrors.map((e) => <li key={e}>• {e}</li>)}
+          </ul>
+        )}
         <div className="space-y-1.5">
           <Label htmlFor="b-addr">Endereço da propriedade / loja</Label>
           <Input id="b-addr" name="address" required maxLength={160} defaultValue={box?.address || draft?.address} placeholder="Rua, número, bairro" />
@@ -278,7 +323,7 @@ function BoxForm({ userId, box }: { userId: string; box?: Box }) {
         <Label htmlFor="b-wa">WhatsApp (opcional)</Label>
         <Input id="b-wa" name="whatsapp" maxLength={20} defaultValue={box?.whatsapp ?? draft?.whatsapp ?? ""} placeholder="5513999999999" />
       </div>
-      <Button type="submit" className="rounded-full" disabled={save.isPending}>
+      <Button type="submit" className="rounded-full" disabled={save.isPending || fiscalErrors.length > 0}>
         {box ? (box.status === "rejeitado" ? "Corrigir e reenviar para análise" : "Salvar alterações") : "Enviar pedido de habilitação"}
       </Button>
     </form>
