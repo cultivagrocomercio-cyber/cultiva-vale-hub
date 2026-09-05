@@ -86,25 +86,36 @@ function PanelPage() {
 /* Conta em análise: sem acesso ao painel de vendas até a deliberação do administrador */
 function UnderReview({ box, userId }: { box: Box; userId: string }) {
   const rejected = box.status === "rejeitado";
+  const suspended = box.status === "suspenso";
   return (
     <div className="container-page py-8">
       <div className="mx-auto max-w-2xl">
-        <div className={`rounded-2xl border p-5 text-sm ${rejected ? "border-destructive/40 bg-destructive/10" : "border-secondary/40 bg-sun/20"}`}>
+        <div className={`rounded-2xl border p-5 text-sm ${rejected || suspended ? "border-destructive/40 bg-destructive/10" : "border-secondary/40 bg-sun/20"}`}>
           <p className="text-xs font-bold uppercase tracking-widest text-secondary">Habilitação comercial</p>
           <h1 className="mt-1 font-display text-2xl font-semibold">
-            {rejected ? "Pedido de habilitação não aprovado" : "Seu pedido está em análise"}
+            {suspended ? "Seu box está suspenso" : rejected ? "Pedido de habilitação recusado" : "Seu pedido está em análise"}
           </h1>
           <p className="mt-2 text-muted-foreground">
-            {rejected
-              ? "Sua conta segue como cliente. Ajuste as informações abaixo e reenvie para uma nova análise."
+            {suspended
+              ? "O box foi bloqueado pela equipe do Cultiva Vale por infração contratual ou disputa pendente. Seus produtos ficam ocultos e as vendas suspensas até a regularização. Use a conversa abaixo para falar com a equipe."
+              : rejected
+              ? "Sua conta segue como cliente. Veja o apontamento da equipe, corrija as informações abaixo e salve para reenviar a uma nova análise."
               : "Recebemos o cadastro do seu box. Enquanto a equipe analisa, sua conta continua como cliente e o painel de vendas fica bloqueado. Você será liberado assim que o administrador aprovar."}
           </p>
-          {box.review_note && <p className="mt-2 rounded-lg bg-background/70 p-2 text-xs">Observação da equipe: {box.review_note}</p>}
+          {box.review_note && (
+            <p className="mt-2 rounded-lg bg-background/70 p-2 text-xs">
+              <span className="font-semibold">{suspended ? "Motivo da suspensão" : rejected ? "Correções necessárias" : "Observação da equipe"}:</span> {box.review_note}
+            </p>
+          )}
           <p className="mt-4 text-xs font-bold uppercase tracking-widest text-muted-foreground">Conversa com a equipe</p>
           <BoxReviewChat className="mt-2" boxId={box.id} emptyText="Tire dúvidas com a equipe do Cultiva Vale sobre a análise do seu cadastro." />
         </div>
-        <h2 className="mb-3 mt-8 font-display text-xl font-semibold">Dados enviados</h2>
-        <BoxForm userId={userId} box={box} />
+        {!suspended && (
+          <>
+            <h2 className="mb-3 mt-8 font-display text-xl font-semibold">Dados enviados</h2>
+            <BoxForm userId={userId} box={box} />
+          </>
+        )}
       </div>
     </div>
   );
@@ -175,7 +186,9 @@ function BoxForm({ userId, box }: { userId: string; box?: Box }) {
         cover_url: cover[0] ?? null,
       };
       if (box) {
-        const { error } = await supabase.from("boxes").update(payload).eq("id", box.id);
+        // Box recusado: salvar os ajustes reenvia o cadastro para nova análise
+        const resubmit = box.status === "rejeitado" ? { status: "pendente" as const } : {};
+        const { error } = await supabase.from("boxes").update({ ...payload, ...resubmit }).eq("id", box.id);
         if (error) throw error;
       } else {
         const slug = `${slugify(name)}-${Math.random().toString(36).slice(2, 6)}`;
@@ -185,7 +198,7 @@ function BoxForm({ userId, box }: { userId: string; box?: Box }) {
       }
     },
     onSuccess: async () => {
-      toast.success(box ? "Dados atualizados" : "Pedido de habilitação enviado! Sua conta segue como cliente até a aprovação da equipe.");
+      toast.success(box ? (box.status === "rejeitado" ? "Cadastro reenviado para nova análise" : "Dados atualizados") : "Pedido de habilitação enviado! Sua conta segue como cliente até a aprovação da equipe.");
       await refresh();
       qc.invalidateQueries({ queryKey: ["seller"] });
       qc.invalidateQueries({ queryKey: ["home"] });
@@ -266,7 +279,7 @@ function BoxForm({ userId, box }: { userId: string; box?: Box }) {
         <Input id="b-wa" name="whatsapp" maxLength={20} defaultValue={box?.whatsapp ?? draft?.whatsapp ?? ""} placeholder="5513999999999" />
       </div>
       <Button type="submit" className="rounded-full" disabled={save.isPending}>
-        {box ? (box.status === "aprovado" ? "Salvar alterações" : "Reenviar para análise") : "Enviar pedido de habilitação"}
+        {box ? (box.status === "rejeitado" ? "Corrigir e reenviar para análise" : "Salvar alterações") : "Enviar pedido de habilitação"}
       </Button>
     </form>
   );

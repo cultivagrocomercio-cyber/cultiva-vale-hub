@@ -18,6 +18,7 @@ import { CATEGORIES } from "@/lib/categories";
 import { useAuth } from "@/lib/auth";
 import { useCart } from "@/lib/cart";
 import { CategoryIcon } from "@/components/ProductCard";
+import { NotificationsBell } from "@/components/NotificationsBell";
 
 function SearchForm({ onDone }: { onDone?: () => void }) {
   const navigate = useNavigate();
@@ -98,7 +99,7 @@ export function Header() {
                       <Package className="h-4 w-4" /> Meus pedidos
                     </Link>
                     <Link to="/painel" onClick={() => setOpen(false)} className="flex items-center gap-3 rounded-lg px-2 py-2 text-sm font-semibold hover:bg-leaf-light">
-                      <Store className="h-4 w-4" /> {boxId ? (isSeller ? "Meu box" : "Habilitação em análise") : "Tornar-se um Produtor/Vendedor"}
+                      <Store className="h-4 w-4" /> {boxId ? (isSeller ? "Meu box" : "Minha habilitação") : "Tornar-se um Produtor/Vendedor"}
                     </Link>
                     {isAdmin && (
                       <Link to="/admin" onClick={() => setOpen(false)} className="flex items-center gap-3 rounded-lg px-2 py-2 text-sm font-semibold hover:bg-leaf-light">
@@ -157,6 +158,8 @@ export function Header() {
           {loading ? (
             <div className="h-9 w-9 animate-pulse rounded-full bg-muted" />
           ) : user ? (
+            <>
+            <NotificationsBell />
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="outline" className="h-9 gap-2 rounded-full pl-1.5 pr-3">
@@ -176,7 +179,7 @@ export function Header() {
                   <Link to="/meus-pedidos"><Package className="mr-2 h-4 w-4" /> Meus pedidos</Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
-                  <Link to="/painel"><Store className="mr-2 h-4 w-4" /> {boxId ? (isSeller ? "Painel do meu box" : "Habilitação em análise") : "Tornar-se um Produtor/Vendedor"}</Link>
+                  <Link to="/painel"><Store className="mr-2 h-4 w-4" /> {boxId ? (isSeller ? "Painel do meu box" : "Minha habilitação") : "Tornar-se um Produtor/Vendedor"}</Link>
                 </DropdownMenuItem>
                 {isAdmin && (
                   <DropdownMenuItem asChild>
@@ -187,6 +190,7 @@ export function Header() {
                 <DropdownMenuItem onClick={handleSignOut}><LogOut className="mr-2 h-4 w-4" /> Sair</DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
+            </>
           ) : (
             <Button asChild size="sm" className="rounded-full">
               <Link to="/auth">Entrar</Link>
