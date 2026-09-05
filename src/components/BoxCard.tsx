@@ -3,6 +3,7 @@ import { MapPin, Package } from "lucide-react";
 import type { PublicBox } from "@/lib/public.functions";
 import { RatingStars } from "./RatingStars";
 import { LeafMark } from "./Logo";
+import { PlanBadge } from "./PlanBadge";
 
 export function BoxCard({ box }: { box: PublicBox }) {
   return (
@@ -24,7 +25,10 @@ export function BoxCard({ box }: { box: PublicBox }) {
         </div>
       </div>
       <div className="flex flex-1 flex-col gap-1.5 px-4 pb-4 pt-8">
-        <h3 className="font-display text-lg font-semibold leading-tight group-hover:text-primary">{box.name}</h3>
+        <div className="flex flex-wrap items-center gap-2">
+          <h3 className="font-display text-lg font-semibold leading-tight group-hover:text-primary">{box.name}</h3>
+          <PlanBadge plan={box.plan} compact />
+        </div>
         <RatingStars value={box.rating} count={box.reviewCount} />
         <p className="line-clamp-2 text-sm text-muted-foreground">{box.description || "Box do Cultiva Vale."}</p>
         <div className="mt-auto flex items-center justify-between pt-2 text-xs text-muted-foreground">

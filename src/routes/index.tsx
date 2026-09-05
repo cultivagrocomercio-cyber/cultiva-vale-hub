@@ -88,7 +88,10 @@ function Index() {
 
       <section className="container-page py-6">
         <div className="mb-4 flex items-end justify-between">
-          <h2 className="font-display text-2xl font-semibold md:text-3xl">Boxes em destaque</h2>
+          <div>
+            <h2 className="font-display text-2xl font-semibold md:text-3xl">Boxes em destaque</h2>
+            <p className="text-sm text-muted-foreground">Vitrine dos boxes nos planos Intermediário e Premium.</p>
+          </div>
           <Link to="/painel" className="text-sm font-semibold text-primary hover:underline">Quero vender</Link>
         </div>
         {data.featuredBoxes.length ? (
@@ -96,7 +99,7 @@ function Index() {
             {data.featuredBoxes.map((b) => <BoxCard key={b.id} box={b} />)}
           </div>
         ) : (
-          <EmptyState text="Nenhum box ainda. Seja o primeiro a abrir o seu!" />
+          <EmptyState text="Nenhum box em destaque ainda. Abra o seu box e faça upgrade de plano para aparecer aqui!" />
         )}
       </section>
 

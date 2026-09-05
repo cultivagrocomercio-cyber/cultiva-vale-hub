@@ -7,6 +7,7 @@ import { RatingStars } from "@/components/RatingStars";
 import { LeafMark } from "@/components/Logo";
 import { Button } from "@/components/ui/button";
 import { FavoriteButton } from "@/components/FavoriteButton";
+import { PlanBadge } from "@/components/PlanBadge";
 
 export const Route = createFileRoute("/box/$slug")({
   loader: async ({ context, params }) => {
@@ -48,7 +49,10 @@ function BoxPage() {
             )}
           </div>
           <div className="flex-1">
-            <h1 className="font-display text-3xl font-semibold md:text-4xl">{box.name}</h1>
+            <div className="flex flex-wrap items-center gap-3">
+              <h1 className="font-display text-3xl font-semibold md:text-4xl">{box.name}</h1>
+              <PlanBadge plan={box.plan} />
+            </div>
             <div className="mt-1 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-muted-foreground">
               <RatingStars value={box.rating} count={box.reviewCount} />
               <span className="flex items-center gap-1"><MapPin className="h-3.5 w-3.5" /> {box.city}/{box.state} · {box.region}</span>
