@@ -18,6 +18,7 @@ import { Route as MeusPedidosRouteImport } from './routes/meus-pedidos'
 import { Route as PainelRouteImport } from './routes/painel'
 import { Route as PainelVendedorRouteImport } from './routes/painel-vendedor'
 import { Route as PerfilRouteImport } from './routes/perfil'
+import { Route as AdminConfiguracoesRouteImport } from './routes/admin_.configuracoes'
 import { Route as AdminSolicitacoesRouteImport } from './routes/admin_.solicitacoes'
 import { Route as BoxSlugRouteImport } from './routes/box.$slug'
 import { Route as PainelVendedorNotasRouteImport } from './routes/painel-vendedor_.notas'
@@ -68,6 +69,11 @@ const PerfilRoute = PerfilRouteImport.update({
   path: '/perfil',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminConfiguracoesRoute = AdminConfiguracoesRouteImport.update({
+  id: '/admin_/configuracoes',
+  path: '/admin/configuracoes',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AdminSolicitacoesRoute = AdminSolicitacoesRouteImport.update({
   id: '/admin_/solicitacoes',
   path: '/admin/solicitacoes',
@@ -99,6 +105,7 @@ export interface FileRoutesByFullPath {
   '/painel': typeof PainelRoute
   '/painel-vendedor': typeof PainelVendedorRoute
   '/perfil': typeof PerfilRoute
+  '/admin/configuracoes': typeof AdminConfiguracoesRoute
   '/admin/solicitacoes': typeof AdminSolicitacoesRoute
   '/box/$slug': typeof BoxSlugRoute
   '/painel-vendedor/notas': typeof PainelVendedorNotasRoute
@@ -114,6 +121,7 @@ export interface FileRoutesByTo {
   '/painel': typeof PainelRoute
   '/painel-vendedor': typeof PainelVendedorRoute
   '/perfil': typeof PerfilRoute
+  '/admin/configuracoes': typeof AdminConfiguracoesRoute
   '/admin/solicitacoes': typeof AdminSolicitacoesRoute
   '/box/$slug': typeof BoxSlugRoute
   '/painel-vendedor/notas': typeof PainelVendedorNotasRoute
@@ -130,6 +138,7 @@ export interface FileRoutesById {
   '/painel': typeof PainelRoute
   '/painel-vendedor': typeof PainelVendedorRoute
   '/perfil': typeof PerfilRoute
+  '/admin_/configuracoes': typeof AdminConfiguracoesRoute
   '/admin_/solicitacoes': typeof AdminSolicitacoesRoute
   '/box/$slug': typeof BoxSlugRoute
   '/painel-vendedor_/notas': typeof PainelVendedorNotasRoute
@@ -147,6 +156,7 @@ export interface FileRouteTypes {
     | '/painel'
     | '/painel-vendedor'
     | '/perfil'
+    | '/admin/configuracoes'
     | '/admin/solicitacoes'
     | '/box/$slug'
     | '/painel-vendedor/notas'
@@ -162,6 +172,7 @@ export interface FileRouteTypes {
     | '/painel'
     | '/painel-vendedor'
     | '/perfil'
+    | '/admin/configuracoes'
     | '/admin/solicitacoes'
     | '/box/$slug'
     | '/painel-vendedor/notas'
@@ -177,6 +188,7 @@ export interface FileRouteTypes {
     | '/painel'
     | '/painel-vendedor'
     | '/perfil'
+    | '/admin_/configuracoes'
     | '/admin_/solicitacoes'
     | '/box/$slug'
     | '/painel-vendedor_/notas'
@@ -193,6 +205,7 @@ export interface RootRouteChildren {
   PainelRoute: typeof PainelRoute
   PainelVendedorRoute: typeof PainelVendedorRoute
   PerfilRoute: typeof PerfilRoute
+  AdminConfiguracoesRoute: typeof AdminConfiguracoesRoute
   AdminSolicitacoesRoute: typeof AdminSolicitacoesRoute
   BoxSlugRoute: typeof BoxSlugRoute
   PainelVendedorNotasRoute: typeof PainelVendedorNotasRoute
@@ -264,6 +277,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PerfilRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin_/configuracoes': {
+      id: '/admin_/configuracoes'
+      path: '/admin/configuracoes'
+      fullPath: '/admin/configuracoes'
+      preLoaderRoute: typeof AdminConfiguracoesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/admin_/solicitacoes': {
       id: '/admin_/solicitacoes'
       path: '/admin/solicitacoes'
@@ -305,6 +325,7 @@ const rootRouteChildren: RootRouteChildren = {
   PainelRoute: PainelRoute,
   PainelVendedorRoute: PainelVendedorRoute,
   PerfilRoute: PerfilRoute,
+  AdminConfiguracoesRoute: AdminConfiguracoesRoute,
   AdminSolicitacoesRoute: AdminSolicitacoesRoute,
   BoxSlugRoute: BoxSlugRoute,
   PainelVendedorNotasRoute: PainelVendedorNotasRoute,
