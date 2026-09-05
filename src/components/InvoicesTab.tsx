@@ -1,12 +1,15 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { FileText, Send, Download, CheckCircle2, XCircle, Eye } from "lucide-react";
+import { FileText, Send, Download, CheckCircle2, XCircle, Eye, Upload } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import type { Tables } from "@/integrations/supabase/types";
 import { ORDER_STATUS_LABEL, formatPrice } from "@/lib/categories";
 import { NFE_ELIGIBLE_ORDER_STATUS, NFE_STATUS_LABEL, NFE_STATUS_STYLE, buildNfePayload, readBuyerFiscal, type NfePayload } from "@/lib/nfe";
 import { formatTaxId } from "@/lib/fiscal";
+import { useAuth } from "@/lib/auth";
+import { uploadImage } from "@/lib/storage";
+import { InvoiceDownloads } from "@/components/InvoiceDownloads";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -183,10 +186,12 @@ function InvoiceDetail({ order, invoice, onDone }: { order: OrderRow; invoice: I
       const { error } = await supabase.from("invoices").update(patch).eq("id", invoice.id);
       if (error) throw error;
     },
-    onSuccess: () => {
-      toast.success("Situação da NF-e atualizada");
+    onSuccess: (_d, patch) => {
+      const fileOnly = !("status" in patch);
+      toast.success(fileOnly ? "Arquivo anexado à NF-e" : "Situação da NF-e atualizada");
       qc.invalidateQueries({ queryKey: ["seller", "invoices"] });
-      onDone();
+      qc.invalidateQueries({ queryKey: ["invoice-files", order.id] });
+      if (!fileOnly) onDone();
     },
     onError: (e) => toast.error(e.message),
   });
@@ -282,10 +287,21 @@ function InvoiceDetail({ order, invoice, onDone }: { order: OrderRow; invoice: I
       )}
 
       {invoice.status === "autorizada" && (
-        <div className="rounded-xl border bg-leaf-light/40 p-3 text-sm">
-          <Line k="Chave de acesso" v={invoice.access_key} mono />
-          <Line k="Número / série" v={`${invoice.number} / ${invoice.series}`} />
-          <Line k="Autorizada em" v={invoice.issued_at ? new Date(invoice.issued_at).toLocaleString("pt-BR") : "—"} />
+        <div className="space-y-3 rounded-xl border bg-leaf-light/40 p-3 text-sm">
+          <div>
+            <Line k="Chave de acesso" v={invoice.access_key} mono />
+            <Line k="Número / série" v={`${invoice.number} / ${invoice.series}`} />
+            <Line k="Autorizada em" v={invoice.issued_at ? new Date(invoice.issued_at).toLocaleString("pt-BR") : "—"} />
+          </div>
+          <div className="space-y-2 border-t pt-3">
+            <p className="text-xs font-bold uppercase tracking-widest text-secondary">Arquivos da nota (XML e DANFE)</p>
+            <p className="text-xs text-muted-foreground">Anexe o XML autorizado e o DANFE em PDF. Eles ficam disponíveis para download para você e para o comprador na tela do pedido.</p>
+            <div className="grid gap-3 sm:grid-cols-2">
+              <FileSlot label="XML da NF-e" accept=".xml,text/xml,application/xml" current={invoice.xml_path} onUpload={(path) => update.mutate({ xml_path: path })} pending={update.isPending} />
+              <FileSlot label="DANFE (PDF)" accept=".pdf,application/pdf" current={invoice.danfe_path} onUpload={(path) => update.mutate({ danfe_path: path })} pending={update.isPending} />
+            </div>
+            <InvoiceDownloads orderId={order.id} compact />
+          </div>
         </div>
       )}
       {mode === "cancel" && (
@@ -293,6 +309,35 @@ function InvoiceDetail({ order, invoice, onDone }: { order: OrderRow; invoice: I
           onCancel={() => setMode("none")} onConfirm={() => update.mutate({ status: "cancelada", rejection_reason: reason.trim() })} confirmLabel="Confirmar cancelamento" />
       )}
     </>
+  );
+}
+
+function FileSlot({ label, accept, current, onUpload, pending }: { label: string; accept: string; current: string; onUpload: (path: string) => void; pending: boolean }) {
+  const { user } = useAuth();
+  const ref = useRef<HTMLInputElement>(null);
+  const [busy, setBusy] = useState(false);
+  async function pick(file: File | undefined) {
+    if (!file || !user) return;
+    if (file.size > 5 * 1024 * 1024) { toast.error("Arquivo acima de 5 MB"); return; }
+    setBusy(true);
+    try {
+      const path = await uploadImage(user.id, file, "nfe");
+      onUpload(path);
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Falha no upload");
+    } finally {
+      setBusy(false);
+    }
+  }
+  return (
+    <div className="rounded-lg border bg-card p-2.5">
+      <p className="text-xs font-semibold">{label}</p>
+      <p className="mb-2 text-[11px] text-muted-foreground">{current ? "Arquivo anexado" : "Nenhum arquivo anexado"}</p>
+      <input ref={ref} type="file" accept={accept} className="hidden" onChange={(e) => pick(e.target.files?.[0])} />
+      <Button type="button" size="sm" variant="outline" className="rounded-full" disabled={busy || pending} onClick={() => ref.current?.click()}>
+        <Upload className="mr-1.5 h-3.5 w-3.5" /> {current ? "Substituir" : "Anexar"}
+      </Button>
+    </div>
   );
 }
 
