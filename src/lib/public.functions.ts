@@ -15,6 +15,7 @@ export interface PublicBox {
   region: string;
   whatsapp: string | null;
   plan: BoxPlan;
+  logistics: string[];
   createdAt: string;
   rating: number | null;
   reviewCount: number;
@@ -50,9 +51,17 @@ const searchSchema = z.object({
   categoria: z.enum(["plantas", "insumos", "maquinas"]).optional(),
   sub: z.string().max(60).optional(),
   regiao: z.string().max(60).optional(),
-  ordem: z.enum(["recentes", "menor", "maior"]).optional(),
+  cidade: z.string().max(60).optional(),
+  vale: z.boolean().optional(),
+  pmin: z.number().min(0).optional(),
+  pmax: z.number().min(0).optional(),
+  nota: z.number().int().min(1).max(5).optional(),
+  log: z.array(z.enum(["entrega_regional", "retirada", "envio_nacional"])).max(3).optional(),
+  ordem: z.enum(["relevancia", "recentes", "menor", "maior", "avaliados"]).optional(),
   limit: z.number().int().min(1).max(60).optional(),
 });
+
+const BOX_COLS = "id, name, slug, city, state, region, plan, logistics, rating_avg, rating_count";
 
 type RatedBox = { plan: BoxPlan; rating_avg: number | string | null; rating_count: number };
 
@@ -131,6 +140,7 @@ export const getHomeData = createServerFn({ method: "GET" }).handler(async () =>
       region: b.region,
       whatsapp: b.whatsapp,
       plan: b.plan,
+      logistics: b.logistics ?? [],
       createdAt: b.created_at,
       rating: num(b.rating_avg),
       reviewCount: b.rating_count,
@@ -174,35 +184,60 @@ export const searchProducts = createServerFn({ method: "GET" })
   .inputValidator((input: unknown) => searchSchema.parse(input ?? {}))
   .handler(async ({ data }) => {
     const { createPublicClient, signPaths, resolve } = await import("./supabase-public.server");
-    const { NEARBY_REGIONS } = await import("./categories");
+    const { NEARBY_REGIONS, VALE_REGION } = await import("./categories");
     const sb = createPublicClient();
     const limit = data.limit ?? 48;
+
+    const relevance = !data.ordem || data.ordem === "relevancia";
+    const q = data.q?.replace(/[%,()]/g, " ").trim();
+    const restrictVale = data.vale || !!data.cidade;
+    const region = restrictVale ? VALE_REGION : data.regiao;
+
+    // Busca textual também pelo nome do box vendedor
+    let matchedBoxIds: string[] = [];
+    if (q) {
+      const { data: mb } = await sb.from("boxes").select("id").ilike("name", `%${q}%`).limit(50);
+      matchedBoxIds = (mb ?? []).map((b) => b.id);
+    }
 
     const buildProducts = (regions: string[] | null, max: number) => {
       let query = sb
         .from("products")
-        .select("*, boxes!inner(id, name, slug, city, state, region, plan, rating_avg, rating_count)")
+        .select(`*, boxes!inner(${BOX_COLS})`)
         .eq("active", true)
         .limit(max);
-      if (data.q) query = query.ilike("name", `%${data.q}%`);
+      if (q) {
+        const ors = [`name.ilike.%${q}%`, `description.ilike.%${q}%`, `subcategory.ilike.%${q}%`];
+        if (matchedBoxIds.length) ors.push(`box_id.in.(${matchedBoxIds.join(",")})`);
+        query = query.or(ors.join(","));
+      }
       if (data.categoria) query = query.eq("category", data.categoria);
       if (data.sub) query = query.eq("subcategory", data.sub);
       if (regions) query = query.in("boxes.region", regions);
+      if (data.cidade) query = query.ilike("boxes.city", data.cidade);
+      if (data.log?.length) query = query.overlaps("boxes.logistics", data.log);
+      if (data.pmin != null) query = query.gte("price", data.pmin);
+      if (data.pmax != null) query = query.lte("price", data.pmax);
+      if (data.nota != null) query = query.gte("rating_avg", data.nota);
       if (data.ordem === "menor") query = query.order("price", { ascending: true });
       else if (data.ordem === "maior") query = query.order("price", { ascending: false });
+      else if (data.ordem === "avaliados") query = query.order("rating_avg", { ascending: false, nullsFirst: false }).order("rating_count", { ascending: false });
       else query = query.order("created_at", { ascending: false });
       return query;
     };
 
-    const nearbyRegions = data.regiao ? (NEARBY_REGIONS[data.regiao] ?? []) : [];
+    const nearbyRegions = region && !restrictVale ? (NEARBY_REGIONS[region] ?? []) : [];
 
-    // Boxes: filtra por região e (se houver) por categoria via produtos ativos
+    // Boxes: filtra por região/cidade/logística e (se houver) por categoria via produtos ativos
     let boxQuery = sb.from("boxes").select("*").order("created_at", { ascending: false }).limit(24);
-    if (data.regiao) boxQuery = boxQuery.eq("region", data.regiao);
-    if (data.q) boxQuery = boxQuery.or(`name.ilike.%${data.q}%,city.ilike.%${data.q}%`);
+    if (region) boxQuery = boxQuery.eq("region", region);
+    if (data.cidade) boxQuery = boxQuery.ilike("city", data.cidade);
+    if (data.log?.length) boxQuery = boxQuery.overlaps("logistics", data.log);
+    if (data.nota != null) boxQuery = boxQuery.gte("rating_avg", data.nota);
+    if (q) boxQuery = boxQuery.or(`name.ilike.%${q}%,city.ilike.%${q}%,description.ilike.%${q}%`);
 
     const [mainRes, nearRes, boxRes] = await Promise.all([
-      buildProducts(data.regiao ? [data.regiao] : null, limit),
+      buildProducts(region ? [region] : null, limit),
       nearbyRegions.length ? buildProducts(nearbyRegions, 12) : Promise.resolve({ data: [], error: null }),
       boxQuery,
     ]);
@@ -211,7 +246,8 @@ export const searchProducts = createServerFn({ method: "GET" })
     if (boxRes.error) throw new Error(boxRes.error.message);
 
     // Ordenação algorítmica: premium (3) > intermediário (2) > básico (1) + bônus de reputação (+1); dentro do peso, mantém o critério escolhido
-    const mainRows = sortByPlan(mainRes.data ?? [], (p) => p.boxes);
+    // "Mais relevantes" = plano + reputação; demais ordenações respeitam apenas o critério escolhido
+    const mainRows = relevance ? sortByPlan(mainRes.data ?? [], (p) => p.boxes) : (mainRes.data ?? []);
     const nearRows = sortByPlan(nearRes.data ?? [], (p) => p.boxes);
     let boxRows = sortByPlan(boxRes.data ?? [], (b) => b);
 
@@ -246,6 +282,7 @@ export const searchProducts = createServerFn({ method: "GET" })
         region: b.region,
         whatsapp: b.whatsapp,
         plan: b.plan,
+        logistics: b.logistics ?? [],
         createdAt: b.created_at,
         rating: num(b.rating_avg),
         reviewCount: b.rating_count,
@@ -259,6 +296,7 @@ export const searchProducts = createServerFn({ method: "GET" })
       nearbyProducts: nearRows.filter((p) => !mainIds.has(p.id)).map((p) => mapProduct(p, urlMap, resolve)),
       nearbyRegions,
       boxes,
+      total: mainRows.length,
     };
   });
 
@@ -300,6 +338,7 @@ export const getBoxBySlug = createServerFn({ method: "GET" })
       region: b.region,
       whatsapp: b.whatsapp,
       plan: b.plan,
+      logistics: b.logistics ?? [],
       createdAt: b.created_at,
       rating: num(b.rating_avg),
       reviewCount: b.rating_count,
