@@ -89,6 +89,9 @@ function AdminDashboard() {
           <Button asChild variant="outline" className="rounded-full">
             <Link to="/admin/configuracoes"><Settings className="mr-2 h-4 w-4" /> Configurações</Link>
           </Button>
+          <Button asChild variant="outline" className="rounded-full">
+            <Link to="/admin/avaliacoes"><Star className="mr-2 h-4 w-4" /> Avaliações</Link>
+          </Button>
           <Button asChild className="rounded-full">
             <Link to="/admin/solicitacoes"><ClipboardList className="mr-2 h-4 w-4" /> Solicitações de boxes{pending.length > 0 && ` (${pending.length})`}</Link>
           </Button>
