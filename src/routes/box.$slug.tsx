@@ -8,6 +8,7 @@ import { LeafMark } from "@/components/Logo";
 import { Button } from "@/components/ui/button";
 import { FavoriteButton } from "@/components/FavoriteButton";
 import { PlanBadge } from "@/components/PlanBadge";
+import { ReportReviewButton } from "@/components/ReportReviewButton";
 
 export const Route = createFileRoute("/box/$slug")({
   loader: async ({ context, params }) => {
@@ -97,17 +98,26 @@ function BoxPage() {
         </section>
 
         <section className="mt-10">
-          <h2 className="font-display text-2xl font-semibold">Avaliações</h2>
+          <div className="flex flex-wrap items-center gap-3">
+            <h2 className="font-display text-2xl font-semibold">Avaliações</h2>
+            {box.rating != null && <span className="rounded-full bg-leaf-light px-3 py-1 text-sm font-semibold text-primary">{box.rating.toFixed(1)} ★ ({box.reviewCount} {box.reviewCount === 1 ? "avaliação" : "avaliações"})</span>}
+          </div>
           {reviews.length ? (
             <div className="mt-4 grid gap-3 md:grid-cols-2">
               {reviews.map((r) => (
                 <div key={r.id} className="rounded-2xl border bg-card p-4 shadow-soft">
-                  <div className="flex items-center justify-between">
+                  <div className="flex items-start justify-between gap-2">
                     <p className="font-semibold">{r.buyerName}</p>
-                    <RatingStars value={r.rating} />
+                    <div className="text-right text-xs text-muted-foreground">
+                      <span className="flex items-center justify-end gap-1.5">Box <RatingStars value={r.rating} /></span>
+                      <span className="flex items-center justify-end gap-1.5">Produto <RatingStars value={r.productRating} /></span>
+                    </div>
                   </div>
                   {r.comment && <p className="mt-2 text-sm text-muted-foreground">{r.comment}</p>}
-                  <p className="mt-2 text-xs text-muted-foreground">{new Date(r.createdAt).toLocaleDateString("pt-BR")}</p>
+                  <div className="mt-2 flex items-center justify-between">
+                    <p className="text-xs text-muted-foreground">{new Date(r.createdAt).toLocaleDateString("pt-BR")}</p>
+                    <ReportReviewButton reviewId={r.id} />
+                  </div>
                 </div>
               ))}
             </div>

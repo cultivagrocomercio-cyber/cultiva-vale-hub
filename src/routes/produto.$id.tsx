@@ -94,6 +94,10 @@ function ProductPage() {
             <CategoryIcon category={product.category} className="h-3 w-3" /> {cat.name} · {product.subcategory}
           </span>
           <h1 className="mt-3 font-display text-3xl font-semibold md:text-4xl">{product.name}</h1>
+          <div className="mt-2 flex items-center gap-2 text-sm">
+            <RatingStars value={product.rating} size="md" />
+            <span className="text-muted-foreground">{product.reviewCount > 0 ? `(${product.reviewCount} ${product.reviewCount === 1 ? "avaliação" : "avaliações"})` : "Sem avaliações ainda"}</span>
+          </div>
           <p className="mt-3 font-display text-4xl font-semibold text-primary">{formatPrice(product.price)}</p>
           <p className="mt-1 text-sm text-muted-foreground">{out ? "Esgotado" : `${product.stock} em estoque`}</p>
 
