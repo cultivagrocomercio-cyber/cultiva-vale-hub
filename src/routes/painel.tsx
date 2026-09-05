@@ -323,7 +323,7 @@ function BoxForm({ userId, box }: { userId: string; box?: Box }) {
         <Label htmlFor="b-wa">WhatsApp (opcional)</Label>
         <Input id="b-wa" name="whatsapp" maxLength={20} defaultValue={box?.whatsapp ?? draft?.whatsapp ?? ""} placeholder="5513999999999" />
       </div>
-      <Button type="submit" className="rounded-full" disabled={save.isPending}>
+      <Button type="submit" className="rounded-full" disabled={save.isPending || fiscalErrors.length > 0}>
         {box ? (box.status === "rejeitado" ? "Corrigir e reenviar para análise" : "Salvar alterações") : "Enviar pedido de habilitação"}
       </Button>
     </form>
