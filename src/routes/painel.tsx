@@ -146,14 +146,19 @@ function Dashboard({ box, userId }: { box: Box; userId: string }) {
 function BoxForm({ userId, box }: { userId: string; box?: Box }) {
   const { refresh } = useAuth();
   const qc = useQueryClient();
+  const [draft] = useState(() => (box ? null : readSellerDraft()));
   const [logo, setLogo] = useState<string[]>(box?.logo_url ? [box.logo_url] : []);
   const [cover, setCover] = useState<string[]>(box?.cover_url ? [box.cover_url] : []);
   const [state, setState] = useState(box?.state ?? "SP");
   const [region, setRegion] = useState(box?.region ?? REGIONS[0]!);
+  const [mainCategory, setMainCategory] = useState<CategorySlug | "">(
+    box?.main_category ?? (CATEGORIES.some((c) => c.slug === draft?.main_category) ? (draft!.main_category as CategorySlug) : ""),
+  );
 
   const save = useMutation({
     mutationFn: async (fd: FormData) => {
       const name = String(fd.get("name")).trim();
+      if (!mainCategory) throw new Error("Selecione a categoria de atuação");
       const payload = {
         name,
         description: String(fd.get("description")).trim(),
@@ -162,6 +167,9 @@ function BoxForm({ userId, box }: { userId: string; box?: Box }) {
         state,
         region,
         whatsapp: String(fd.get("whatsapp")).trim() || null,
+        tax_id: String(fd.get("tax_id")).trim(),
+        address: String(fd.get("address")).trim(),
+        main_category: mainCategory,
         logo_url: logo[0] ?? null,
         cover_url: cover[0] ?? null,
       };
@@ -172,10 +180,11 @@ function BoxForm({ userId, box }: { userId: string; box?: Box }) {
         const slug = `${slugify(name)}-${Math.random().toString(36).slice(2, 6)}`;
         const { error } = await supabase.from("boxes").insert({ ...payload, slug, owner_id: userId });
         if (error) throw error;
+        clearSellerDraft();
       }
     },
     onSuccess: async () => {
-      toast.success(box ? "Box atualizado" : "Box criado! Enviamos para análise. Você poderá vender após a aprovação da equipe.");
+      toast.success(box ? "Dados atualizados" : "Pedido de habilitação enviado! Sua conta segue como cliente até a aprovação da equipe.");
       await refresh();
       qc.invalidateQueries({ queryKey: ["seller"] });
       qc.invalidateQueries({ queryKey: ["home"] });
