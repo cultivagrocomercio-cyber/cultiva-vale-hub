@@ -12,7 +12,13 @@ export interface SearchParams {
   categoria?: "plantas" | "insumos" | "maquinas" | undefined;
   sub?: string | undefined;
   regiao?: string | undefined;
-  ordem?: "recentes" | "menor" | "maior" | undefined;
+  cidade?: string | undefined;
+  vale?: boolean | undefined;
+  pmin?: number | undefined;
+  pmax?: number | undefined;
+  nota?: number | undefined;
+  log?: ("entrega_regional" | "retirada" | "envio_nacional")[] | undefined;
+  ordem?: "relevancia" | "recentes" | "menor" | "maior" | "avaliados" | undefined;
 }
 
 export const searchQuery = (params: SearchParams) =>
