@@ -23,6 +23,7 @@ import { Route as AdminConfiguracoesRouteImport } from './routes/admin_.configur
 import { Route as AdminSolicitacoesRouteImport } from './routes/admin_.solicitacoes'
 import { Route as BoxSlugRouteImport } from './routes/box.$slug'
 import { Route as PainelVendedorCertificadoRouteImport } from './routes/painel-vendedor_.certificado'
+import { Route as PainelVendedorEstoqueRouteImport } from './routes/painel-vendedor_.estoque'
 import { Route as PainelVendedorNotasRouteImport } from './routes/painel-vendedor_.notas'
 import { Route as ProdutoIdRouteImport } from './routes/produto.$id'
 
@@ -97,6 +98,11 @@ const PainelVendedorCertificadoRoute =
     path: '/painel-vendedor/certificado',
     getParentRoute: () => rootRouteImport,
   } as any)
+const PainelVendedorEstoqueRoute = PainelVendedorEstoqueRouteImport.update({
+  id: '/painel-vendedor_/estoque',
+  path: '/painel-vendedor/estoque',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const PainelVendedorNotasRoute = PainelVendedorNotasRouteImport.update({
   id: '/painel-vendedor_/notas',
   path: '/painel-vendedor/notas',
@@ -123,6 +129,7 @@ export interface FileRoutesByFullPath {
   '/admin/solicitacoes': typeof AdminSolicitacoesRoute
   '/box/$slug': typeof BoxSlugRoute
   '/painel-vendedor/certificado': typeof PainelVendedorCertificadoRoute
+  '/painel-vendedor/estoque': typeof PainelVendedorEstoqueRoute
   '/painel-vendedor/notas': typeof PainelVendedorNotasRoute
   '/produto/$id': typeof ProdutoIdRoute
 }
@@ -141,6 +148,7 @@ export interface FileRoutesByTo {
   '/admin/solicitacoes': typeof AdminSolicitacoesRoute
   '/box/$slug': typeof BoxSlugRoute
   '/painel-vendedor/certificado': typeof PainelVendedorCertificadoRoute
+  '/painel-vendedor/estoque': typeof PainelVendedorEstoqueRoute
   '/painel-vendedor/notas': typeof PainelVendedorNotasRoute
   '/produto/$id': typeof ProdutoIdRoute
 }
@@ -160,6 +168,7 @@ export interface FileRoutesById {
   '/admin_/solicitacoes': typeof AdminSolicitacoesRoute
   '/box/$slug': typeof BoxSlugRoute
   '/painel-vendedor_/certificado': typeof PainelVendedorCertificadoRoute
+  '/painel-vendedor_/estoque': typeof PainelVendedorEstoqueRoute
   '/painel-vendedor_/notas': typeof PainelVendedorNotasRoute
   '/produto/$id': typeof ProdutoIdRoute
 }
@@ -180,6 +189,7 @@ export interface FileRouteTypes {
     | '/admin/solicitacoes'
     | '/box/$slug'
     | '/painel-vendedor/certificado'
+    | '/painel-vendedor/estoque'
     | '/painel-vendedor/notas'
     | '/produto/$id'
   fileRoutesByTo: FileRoutesByTo
@@ -198,6 +208,7 @@ export interface FileRouteTypes {
     | '/admin/solicitacoes'
     | '/box/$slug'
     | '/painel-vendedor/certificado'
+    | '/painel-vendedor/estoque'
     | '/painel-vendedor/notas'
     | '/produto/$id'
   id:
@@ -216,6 +227,7 @@ export interface FileRouteTypes {
     | '/admin_/solicitacoes'
     | '/box/$slug'
     | '/painel-vendedor_/certificado'
+    | '/painel-vendedor_/estoque'
     | '/painel-vendedor_/notas'
     | '/produto/$id'
   fileRoutesById: FileRoutesById
@@ -235,6 +247,7 @@ export interface RootRouteChildren {
   AdminSolicitacoesRoute: typeof AdminSolicitacoesRoute
   BoxSlugRoute: typeof BoxSlugRoute
   PainelVendedorCertificadoRoute: typeof PainelVendedorCertificadoRoute
+  PainelVendedorEstoqueRoute: typeof PainelVendedorEstoqueRoute
   PainelVendedorNotasRoute: typeof PainelVendedorNotasRoute
   ProdutoIdRoute: typeof ProdutoIdRoute
 }
@@ -339,6 +352,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PainelVendedorCertificadoRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/painel-vendedor_/estoque': {
+      id: '/painel-vendedor_/estoque'
+      path: '/painel-vendedor/estoque'
+      fullPath: '/painel-vendedor/estoque'
+      preLoaderRoute: typeof PainelVendedorEstoqueRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/painel-vendedor_/notas': {
       id: '/painel-vendedor_/notas'
       path: '/painel-vendedor/notas'
@@ -371,6 +391,7 @@ const rootRouteChildren: RootRouteChildren = {
   AdminSolicitacoesRoute: AdminSolicitacoesRoute,
   BoxSlugRoute: BoxSlugRoute,
   PainelVendedorCertificadoRoute: PainelVendedorCertificadoRoute,
+  PainelVendedorEstoqueRoute: PainelVendedorEstoqueRoute,
   PainelVendedorNotasRoute: PainelVendedorNotasRoute,
   ProdutoIdRoute: ProdutoIdRoute,
 }
