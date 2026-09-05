@@ -43,7 +43,8 @@ export function planWeight(plan: BoxPlan | null | undefined) {
 }
 
 /** WhatsApp da plataforma para contratar/upgrade de plano (só dígitos, com DDI). Preencha com o número real. */
-export const PLATFORM_WHATSAPP = "";
+export const PLATFORM_WHATSAPP = "5513991318923";
+export const PLATFORM_EMAIL = "cultivagrocomercio@gmail.com";
 
 /** Chave PIX da plataforma exibida no checkout. Preencha com a chave real. */
 export const PLATFORM_PIX_KEY = "";
