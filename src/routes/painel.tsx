@@ -206,7 +206,7 @@ function BoxForm({ userId, box }: { userId: string; box?: Box }) {
         <div className="space-y-4">
           <div className="space-y-1.5">
             <Label htmlFor="b-name">Nome do box</Label>
-            <Input id="b-name" name="name" required minLength={2} maxLength={60} defaultValue={box?.name} placeholder="Ex.: Sítio Flor do Vale" />
+            <Input id="b-name" name="name" required minLength={2} maxLength={60} defaultValue={box?.name ?? draft?.name} placeholder="Ex.: Sítio Flor do Vale" />
           </div>
           <div className="space-y-1.5">
             <Label htmlFor="b-desc">Descrição curta</Label>
@@ -218,10 +218,32 @@ function BoxForm({ userId, box }: { userId: string; box?: Box }) {
         <Label htmlFor="b-story">História do produtor / loja</Label>
         <Textarea id="b-story" name="story" rows={4} maxLength={2000} defaultValue={box?.story} placeholder="Conte de onde vem sua produção, há quanto tempo cultiva…" />
       </div>
+
+      <fieldset className="space-y-4 rounded-2xl border p-4">
+        <legend className="px-1 text-xs font-bold uppercase tracking-widest text-secondary">Dados fiscais e de atuação</legend>
+        <div className="grid gap-4 sm:grid-cols-2">
+          <div className="space-y-1.5">
+            <Label htmlFor="b-tax">CPF ou CNPJ</Label>
+            <Input id="b-tax" name="tax_id" required minLength={11} maxLength={20} defaultValue={box?.tax_id || draft?.tax_id} placeholder="000.000.000-00" />
+          </div>
+          <div className="space-y-1.5">
+            <Label>Categoria de atuação</Label>
+            <Select value={mainCategory} onValueChange={(v) => setMainCategory(v as CategorySlug)}>
+              <SelectTrigger aria-label="Categoria de atuação"><SelectValue placeholder="Selecione" /></SelectTrigger>
+              <SelectContent>{CATEGORIES.map((c) => <SelectItem key={c.slug} value={c.slug}>{c.name}</SelectItem>)}</SelectContent>
+            </Select>
+          </div>
+        </div>
+        <div className="space-y-1.5">
+          <Label htmlFor="b-addr">Endereço da propriedade / loja</Label>
+          <Input id="b-addr" name="address" required maxLength={160} defaultValue={box?.address || draft?.address} placeholder="Rua, número, bairro" />
+        </div>
+      </fieldset>
+
       <div className="grid gap-4 sm:grid-cols-3">
         <div className="space-y-1.5">
           <Label htmlFor="b-city">Cidade</Label>
-          <Input id="b-city" name="city" required maxLength={60} defaultValue={box?.city} placeholder="Registro" />
+          <Input id="b-city" name="city" required maxLength={60} defaultValue={box?.city ?? draft?.city} placeholder="Registro" />
         </div>
         <div className="space-y-1.5">
           <Label>Estado</Label>
@@ -240,9 +262,11 @@ function BoxForm({ userId, box }: { userId: string; box?: Box }) {
       </div>
       <div className="space-y-1.5">
         <Label htmlFor="b-wa">WhatsApp (opcional)</Label>
-        <Input id="b-wa" name="whatsapp" maxLength={20} defaultValue={box?.whatsapp ?? ""} placeholder="5513999999999" />
+        <Input id="b-wa" name="whatsapp" maxLength={20} defaultValue={box?.whatsapp ?? draft?.whatsapp ?? ""} placeholder="5513999999999" />
       </div>
-      <Button type="submit" className="rounded-full" disabled={save.isPending}>{box ? "Salvar alterações" : "Criar meu box"}</Button>
+      <Button type="submit" className="rounded-full" disabled={save.isPending}>
+        {box ? (box.status === "aprovado" ? "Salvar alterações" : "Reenviar para análise") : "Enviar pedido de habilitação"}
+      </Button>
     </form>
   );
 }
