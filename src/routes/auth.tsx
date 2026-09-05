@@ -62,11 +62,12 @@ function AuthPage() {
       const taxId = String(fd.get("tax_id") ?? "");
       const cat = String(fd.get("main_category") ?? "") as CategorySlug;
       const kind = detectTaxKind(taxId);
-      if (!kind) return toast.error("Informe um CPF (11 dígitos) ou CNPJ (14 dígitos) válido");
-      if (kind === "cpf" && !isValidCPF(taxId)) return toast.error("CPF inválido: confira os dígitos verificadores");
-      if (kind === "cnpj" && !isValidCNPJ(taxId)) return toast.error("CNPJ inválido: confira os dígitos verificadores");
+      if (!kind) { toast.error("Informe um CPF (11 dígitos) ou CNPJ (14 dígitos) válido"); return; }
+      if (kind === "cpf" && !isValidCPF(taxId)) { toast.error("CPF inválido: confira os dígitos verificadores"); return; }
+      if (kind === "cnpj" && !isValidCNPJ(taxId)) { toast.error("CNPJ inválido: confira os dígitos verificadores"); return; }
       if (kind === "cpf" && cat && !FISCAL_RULES[cat]?.allowCpf) {
-        return toast.error(`A categoria ${FISCAL_RULES[cat].label.toLowerCase()} exige CNPJ — pessoa física não pode vender nessa categoria`);
+        toast.error(`A categoria ${FISCAL_RULES[cat].label.toLowerCase()} exige CNPJ — pessoa física não pode vender nessa categoria`);
+        return;
       }
       // Guarda o rascunho da habilitação comercial para o formulário do box (status PENDENTE)
       localStorage.setItem(
