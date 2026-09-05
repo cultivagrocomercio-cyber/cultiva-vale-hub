@@ -10,6 +10,7 @@ import { CATEGORIES, CATEGORY_MAP, REGIONS, STATES, formatPrice, slugify, type C
 import { PLANS, formatRate, isPaidOrder } from "@/lib/commission";
 import { ImageUploader } from "@/components/ImageUploader";
 import { BoxReviewChat } from "@/components/BoxReviewChat";
+import { PlanCard } from "@/components/PlanCard";
 import { StorageImage } from "@/components/StorageImage";
 import { OrderCard, type OrderWithItems } from "@/components/OrderCard";
 import { CategoryIcon } from "@/components/ProductCard";
@@ -258,11 +259,24 @@ function ProductsTab({ box, userId }: { box: Box; userId: string }) {
     onError: (e) => toast.error(e.message),
   });
 
+  const activeCount = products.filter((p) => p.active).length;
+  const limit = PLANS[box.plan].productLimit;
+  const atLimit = limit !== null && activeCount >= limit;
+
   return (
     <div>
-      <div className="flex items-center justify-between">
-        <p className="text-sm text-muted-foreground">{products.length} {products.length === 1 ? "produto" : "produtos"}</p>
-        <Button className="rounded-full" onClick={() => setEditing("new")}><Plus className="mr-1.5 h-4 w-4" /> Novo produto</Button>
+      <PlanCard plan={box.plan} boxName={box.name} activeCount={activeCount} />
+      <div className="mt-4 flex items-center justify-between">
+        <p className="text-sm text-muted-foreground">
+          {products.length} {products.length === 1 ? "produto" : "produtos"}
+          {limit !== null && <> · {activeCount}/{limit} ativos</>}
+        </p>
+        <Button
+          className="rounded-full"
+          onClick={() => (atLimit ? toast.error(`O Plano Básico permite até ${limit} produtos ativos. Oculte um produto ou faça upgrade.`) : setEditing("new"))}
+        >
+          <Plus className="mr-1.5 h-4 w-4" /> Novo produto
+        </Button>
       </div>
       <div className="mt-4 space-y-2">
         {isPending ? (
@@ -437,7 +451,7 @@ function EarningsTab({ box }: { box: Box }) {
         <p className="font-semibold">{plan.name} · comissão de {formatRate(plan.rate)}</p>
         <p className="mt-1 text-muted-foreground">
           A cada venda fechada e paga dentro do Cultiva Vale, a plataforma retém {formatRate(plan.rate)} do valor do pedido.
-          O restante é seu. Quer pagar menos? Fale com a equipe sobre os planos Intermediário (5%) e Premium (3%).
+          O restante é seu. Quer pagar menos? Use "Fazer upgrade" na aba Produtos para conhecer os planos Intermediário (5%) e Premium (3%).
         </p>
       </div>
 
