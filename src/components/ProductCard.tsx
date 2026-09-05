@@ -41,9 +41,9 @@ export function ProductCard({ product, className }: { product: PublicProduct; cl
           <CategoryIcon category={product.category} className="h-3 w-3" />
           {CATEGORY_MAP[product.category].short}
         </span>
-        {product.stock === 0 ? (
-          <span className="absolute right-2 top-2 rounded-full bg-secondary px-2 py-0.5 text-[11px] font-bold text-secondary-foreground">
-            Esgotado
+        {product.stock <= 0 ? (
+          <span className="absolute right-2 top-2 rounded-full bg-muted px-2 py-0.5 text-[11px] font-bold text-muted-foreground">
+            Produto Esgotado
           </span>
         ) : (
           <PlanBadge plan={product.box.plan} compact className="absolute right-2 top-2" />
