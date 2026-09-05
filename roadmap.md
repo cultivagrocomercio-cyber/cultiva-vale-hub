@@ -9,3 +9,4 @@
 - [x] Planos: limite 10 produtos (Básico), destaque home (Interm./Premium), ordenação por peso na busca, selo Premium, card "Fazer upgrade" no painel
 - [x] Cadastro bifurcado (Quero Comprar / Quero Vender), habilitação comercial com dados fiscais, endereço e categoria; painel bloqueado até aprovação
 - [x] Busca avançada: texto em tempo real (produto/box), cidade do Vale, "Apenas Vale do Ribeira", faixa de preço, nota mínima, logística, 5 ordenações, sidebar desktop + gaveta mobile
+- [x] Estoque: alerta mínimo por produto, aba/rota /painel-vendedor/estoque com indicadores verde/amarelo/cinza, badge "Produto Esgotado" + botões desabilitados, notificação automática de estoque baixo/esgotado

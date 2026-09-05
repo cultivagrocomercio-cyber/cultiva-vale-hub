@@ -99,22 +99,29 @@ function ProductPage() {
             <span className="text-muted-foreground">{product.reviewCount > 0 ? `(${product.reviewCount} ${product.reviewCount === 1 ? "avaliação" : "avaliações"})` : "Sem avaliações ainda"}</span>
           </div>
           <p className="mt-3 font-display text-4xl font-semibold text-primary">{formatPrice(product.price)}</p>
-          <p className="mt-1 text-sm text-muted-foreground">{out ? "Esgotado" : `${product.stock} em estoque`}</p>
-
-          {!out && (
-            <div className="mt-5 flex flex-wrap items-center gap-3">
-              <div className="flex items-center rounded-full border">
-                <button className="p-2.5" onClick={() => setQty((q) => Math.max(1, q - 1))} aria-label="Diminuir"><Minus className="h-4 w-4" /></button>
-                <span className="w-8 text-center font-semibold tabular-nums">{qty}</span>
-                <button className="p-2.5" onClick={() => setQty((q) => Math.min(product.stock, q + 1))} aria-label="Aumentar"><Plus className="h-4 w-4" /></button>
-              </div>
-              <Button className="rounded-full" size="lg" onClick={() => addToCart(true)}>Comprar agora</Button>
-              <Button className="rounded-full" size="lg" variant="outline" onClick={() => addToCart(false)}>
-                <ShoppingBasket className="mr-2 h-4 w-4" /> Adicionar
-              </Button>
-              <FavoriteButton productId={product.id} label={false} />
-            </div>
+          {out ? (
+            <span className="mt-2 inline-flex items-center rounded-full bg-muted px-3 py-1 text-xs font-bold text-muted-foreground">
+              Produto Esgotado
+            </span>
+          ) : (
+            <p className="mt-1 text-sm text-muted-foreground">{product.stock} em estoque</p>
           )}
+
+          <div className="mt-5 flex flex-wrap items-center gap-3">
+            <div className={`flex items-center rounded-full border ${out ? "opacity-50" : ""}`}>
+              <button className="p-2.5" disabled={out} onClick={() => setQty((q) => Math.max(1, q - 1))} aria-label="Diminuir"><Minus className="h-4 w-4" /></button>
+              <span className="w-8 text-center font-semibold tabular-nums">{out ? 0 : qty}</span>
+              <button className="p-2.5" disabled={out} onClick={() => setQty((q) => Math.min(product.stock, q + 1))} aria-label="Aumentar"><Plus className="h-4 w-4" /></button>
+            </div>
+            <Button className="rounded-full" size="lg" disabled={out} onClick={() => addToCart(true)}>
+              {out ? "Indisponível" : "Comprar agora"}
+            </Button>
+            <Button className="rounded-full" size="lg" variant="outline" disabled={out} onClick={() => addToCart(false)}>
+              <ShoppingBasket className="mr-2 h-4 w-4" /> Adicionar
+            </Button>
+            <FavoriteButton productId={product.id} label={false} />
+          </div>
+          {out && <p className="mt-2 text-xs text-muted-foreground">Favorite o produto para acompanhar quando o vendedor repuser o estoque.</p>}
 
           <Link to="/box/$slug" params={{ slug: product.box.slug }} className="mt-6 flex items-center gap-3 rounded-2xl border bg-card p-4 shadow-soft transition-colors hover:bg-muted/40">
             <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-leaf-light text-primary"><Store className="h-5 w-5" /></span>

@@ -8,6 +8,7 @@ import type { Tables } from "@/integrations/supabase/types";
 import { useAuth } from "@/lib/auth";
 import { CATEGORIES, CATEGORY_MAP, LOGISTICS, ORDER_STATUS_LABEL, REGIONS, STATES, formatPrice, isLogisticsMode, slugify, type CategorySlug, type LogisticsMode } from "@/lib/categories";
 import { Checkbox } from "@/components/ui/checkbox";
+import { StockBadge, StockTab } from "@/components/StockTab";
 import { PLANS, formatRate, isInEscrow, isPaidOrder, isSettledOrder } from "@/lib/commission";
 import { clearSellerDraft, readSellerDraft } from "@/lib/seller-draft";
 import { FISCAL_RULES, detectTaxKind, formatTaxId, onlyDigits, validateFiscal } from "@/lib/fiscal";
@@ -144,6 +145,7 @@ function Dashboard({ box, userId }: { box: Box; userId: string }) {
       <Tabs defaultValue="produtos" className="mt-6">
         <TabsList>
           <TabsTrigger value="produtos">Produtos</TabsTrigger>
+          <TabsTrigger value="estoque">Estoque</TabsTrigger>
           <TabsTrigger value="pedidos">Pedidos</TabsTrigger>
           <TabsTrigger value="ganhos">Meus ganhos</TabsTrigger>
           <TabsTrigger value="notas">Notas fiscais</TabsTrigger>
@@ -151,6 +153,7 @@ function Dashboard({ box, userId }: { box: Box; userId: string }) {
           <TabsTrigger value="box">Meu box</TabsTrigger>
         </TabsList>
         <TabsContent value="produtos" className="mt-4"><ProductsTab box={box} userId={userId} /></TabsContent>
+        <TabsContent value="estoque" className="mt-4"><StockTab boxId={box.id} /></TabsContent>
         <TabsContent value="pedidos" className="mt-4"><OrdersTab boxId={box.id} /></TabsContent>
         <TabsContent value="ganhos" className="mt-4"><EarningsTab box={box} /></TabsContent>
         <TabsContent value="notas" className="mt-4"><InvoicesTab box={box} /></TabsContent>
@@ -432,7 +435,8 @@ function ProductsTab({ box, userId }: { box: Box; userId: string }) {
                 <p className="text-xs text-muted-foreground">{CATEGORY_MAP[p.category].short} · {p.subcategory}</p>
                 <p className="text-sm">
                   <span className="font-semibold text-primary">{formatPrice(p.price)}</span>
-                  <span className={`ml-2 text-xs ${p.stock === 0 ? "text-destructive" : "text-muted-foreground"}`}>estoque: {p.stock}</span>
+                  <span className="ml-2 text-xs text-muted-foreground">estoque: {p.stock}</span>
+                  <StockBadge stock={p.stock} threshold={p.low_stock_threshold} className="ml-2" />
                 </p>
               </div>
               <div className="flex items-center gap-1">
@@ -479,6 +483,7 @@ function ProductForm({ boxId, userId, product, onDone }: { boxId: string; userId
         description: String(fd.get("description")).trim(),
         price: Number(String(fd.get("price")).replace(",", ".")),
         stock: Number(fd.get("stock")),
+        low_stock_threshold: Math.max(0, Math.floor(Number(fd.get("low_stock_threshold") ?? 5) || 0)),
         ncm: String(fd.get("ncm") ?? "").trim(),
         category,
         subcategory: sub,
@@ -545,6 +550,11 @@ function ProductForm({ boxId, userId, product, onDone }: { boxId: string; userId
           <Label htmlFor="p-stock">Estoque</Label>
           <Input id="p-stock" name="stock" type="number" min="0" step="1" required defaultValue={product?.stock ?? 1} />
         </div>
+      </div>
+      <div className="space-y-1.5">
+        <Label htmlFor="p-thr">Alerta de estoque mínimo (opcional)</Label>
+        <Input id="p-thr" name="low_stock_threshold" type="number" min="0" step="1" defaultValue={product?.low_stock_threshold ?? 5} />
+        <p className="text-xs text-muted-foreground">Você recebe um aviso quando restar essa quantidade ou menos. Use 0 para desativar.</p>
       </div>
       <div className="space-y-1.5">
         <Label htmlFor="p-ncm">NCM (classificação fiscal, opcional)</Label>
