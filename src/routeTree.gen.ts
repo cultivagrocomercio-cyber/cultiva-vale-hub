@@ -20,6 +20,7 @@ import { Route as PainelVendedorRouteImport } from './routes/painel-vendedor'
 import { Route as PerfilRouteImport } from './routes/perfil'
 import { Route as AdminSolicitacoesRouteImport } from './routes/admin_.solicitacoes'
 import { Route as BoxSlugRouteImport } from './routes/box.$slug'
+import { Route as PainelVendedorNotasRouteImport } from './routes/painel-vendedor_.notas'
 import { Route as ProdutoIdRouteImport } from './routes/produto.$id'
 
 const IndexRoute = IndexRouteImport.update({
@@ -77,6 +78,11 @@ const BoxSlugRoute = BoxSlugRouteImport.update({
   path: '/box/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PainelVendedorNotasRoute = PainelVendedorNotasRouteImport.update({
+  id: '/painel-vendedor_/notas',
+  path: '/painel-vendedor/notas',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ProdutoIdRoute = ProdutoIdRouteImport.update({
   id: '/produto/$id',
   path: '/produto/$id',
@@ -95,6 +101,7 @@ export interface FileRoutesByFullPath {
   '/perfil': typeof PerfilRoute
   '/admin/solicitacoes': typeof AdminSolicitacoesRoute
   '/box/$slug': typeof BoxSlugRoute
+  '/painel-vendedor/notas': typeof PainelVendedorNotasRoute
   '/produto/$id': typeof ProdutoIdRoute
 }
 export interface FileRoutesByTo {
@@ -109,6 +116,7 @@ export interface FileRoutesByTo {
   '/perfil': typeof PerfilRoute
   '/admin/solicitacoes': typeof AdminSolicitacoesRoute
   '/box/$slug': typeof BoxSlugRoute
+  '/painel-vendedor/notas': typeof PainelVendedorNotasRoute
   '/produto/$id': typeof ProdutoIdRoute
 }
 export interface FileRoutesById {
@@ -124,6 +132,7 @@ export interface FileRoutesById {
   '/perfil': typeof PerfilRoute
   '/admin_/solicitacoes': typeof AdminSolicitacoesRoute
   '/box/$slug': typeof BoxSlugRoute
+  '/painel-vendedor_/notas': typeof PainelVendedorNotasRoute
   '/produto/$id': typeof ProdutoIdRoute
 }
 export interface FileRouteTypes {
@@ -140,6 +149,7 @@ export interface FileRouteTypes {
     | '/perfil'
     | '/admin/solicitacoes'
     | '/box/$slug'
+    | '/painel-vendedor/notas'
     | '/produto/$id'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -154,6 +164,7 @@ export interface FileRouteTypes {
     | '/perfil'
     | '/admin/solicitacoes'
     | '/box/$slug'
+    | '/painel-vendedor/notas'
     | '/produto/$id'
   id:
     | '__root__'
@@ -168,6 +179,7 @@ export interface FileRouteTypes {
     | '/perfil'
     | '/admin_/solicitacoes'
     | '/box/$slug'
+    | '/painel-vendedor_/notas'
     | '/produto/$id'
   fileRoutesById: FileRoutesById
 }
@@ -183,6 +195,7 @@ export interface RootRouteChildren {
   PerfilRoute: typeof PerfilRoute
   AdminSolicitacoesRoute: typeof AdminSolicitacoesRoute
   BoxSlugRoute: typeof BoxSlugRoute
+  PainelVendedorNotasRoute: typeof PainelVendedorNotasRoute
   ProdutoIdRoute: typeof ProdutoIdRoute
 }
 
@@ -265,6 +278,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof BoxSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/painel-vendedor_/notas': {
+      id: '/painel-vendedor_/notas'
+      path: '/painel-vendedor/notas'
+      fullPath: '/painel-vendedor/notas'
+      preLoaderRoute: typeof PainelVendedorNotasRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/produto/$id': {
       id: '/produto/$id'
       path: '/produto/$id'
@@ -287,6 +307,7 @@ const rootRouteChildren: RootRouteChildren = {
   PerfilRoute: PerfilRoute,
   AdminSolicitacoesRoute: AdminSolicitacoesRoute,
   BoxSlugRoute: BoxSlugRoute,
+  PainelVendedorNotasRoute: PainelVendedorNotasRoute,
   ProdutoIdRoute: ProdutoIdRoute,
 }
 export const routeTree = rootRouteImport
