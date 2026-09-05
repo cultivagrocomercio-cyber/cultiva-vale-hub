@@ -7,8 +7,7 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import type { Tables } from "@/integrations/supabase/types";
 import { useAuth } from "@/lib/auth";
-import { formatPrice } from "@/lib/categories";
-
+import { CATEGORY_MAP, formatPrice } from "@/lib/categories";
 import { StorageImage } from "@/components/StorageImage";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
