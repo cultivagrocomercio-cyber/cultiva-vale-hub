@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { BoxReviewCard, STATUS_LABEL, type BoxWithOwner } from "@/components/admin/BoxReviewCard";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Check, ClipboardList, Package, Settings, ShieldCheck, Store } from "lucide-react";
+import { Check, ClipboardList, Package, Settings, ShieldCheck, Star, Store } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import type { Tables } from "@/integrations/supabase/types";
