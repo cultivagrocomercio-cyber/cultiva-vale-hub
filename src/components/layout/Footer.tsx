@@ -1,6 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import { Logo } from "@/components/Logo";
 import { CATEGORIES } from "@/lib/categories";
+import { PLATFORM_EMAIL, PLATFORM_WHATSAPP } from "@/lib/commission";
 
 export function Footer() {
   return (
