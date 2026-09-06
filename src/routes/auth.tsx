@@ -58,6 +58,7 @@ function AuthPage() {
     const fd = new FormData(e.currentTarget);
     const phone = String(fd.get("phone") ?? "").trim();
     const isSeller = intent === "vender";
+    if (!fd.get("consent")) { toast.error("Para criar a conta, aceite os Termos de Uso e a Política de Privacidade."); return; }
     if (isSeller) {
       const taxId = String(fd.get("tax_id") ?? "");
       const cat = String(fd.get("main_category") ?? "") as CategorySlug;
@@ -97,6 +98,8 @@ function AuthPage() {
       return;
     }
     if (data.session) {
+      const now = new Date().toISOString();
+      await supabase.from("profiles").update({ terms_accepted_at: now, privacy_accepted_at: now }).eq("id", data.session.user.id);
       toast.success(isSeller ? "Conta criada! Agora complete o pedido de habilitação do seu box." : "Conta criada! Bem-vindo ao Cultiva Vale.");
       navigate({ to: isSeller ? "/painel" : "/", replace: true });
     } else {
@@ -192,6 +195,13 @@ function AuthPage() {
                   </div>
                 </fieldset>
               )}
+              <label className="flex items-start gap-2 text-xs text-muted-foreground">
+                <input type="checkbox" name="consent" required className="mt-0.5 h-4 w-4 accent-primary" />
+                <span>
+                  Li e aceito os <Link to="/termos" className="text-primary hover:underline">Termos de Uso</Link> e a{" "}
+                  <Link to="/privacidade" className="text-primary hover:underline">Política de Privacidade</Link> (LGPD), e autorizo o tratamento dos meus dados para operar minha conta e pedidos.
+                </span>
+              </label>
               <Button type="submit" className="w-full rounded-full" disabled={busy}>
                 {intent === "vender" ? "Criar conta e pedir habilitação" : "Criar conta"}
               </Button>

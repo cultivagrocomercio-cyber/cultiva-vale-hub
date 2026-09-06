@@ -108,6 +108,9 @@ export function NotificationsBell() {
             );
           })}
         </ul>
+        <div className="border-t px-3 py-2 text-center">
+          <Link to="/notificacoes" className="text-xs font-semibold text-primary hover:underline">Ver todas as notificações</Link>
+        </div>
       </PopoverContent>
     </Popover>
   );

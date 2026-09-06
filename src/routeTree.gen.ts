@@ -19,6 +19,7 @@ import { Route as NotificacoesRouteImport } from './routes/notificacoes'
 import { Route as PainelRouteImport } from './routes/painel'
 import { Route as PainelVendedorRouteImport } from './routes/painel-vendedor'
 import { Route as PerfilRouteImport } from './routes/perfil'
+import { Route as PrivacidadeRouteImport } from './routes/privacidade'
 import { Route as TermosRouteImport } from './routes/termos'
 import { Route as AdminAvaliacoesRouteImport } from './routes/admin_.avaliacoes'
 import { Route as AdminConfiguracoesRouteImport } from './routes/admin_.configuracoes'
@@ -79,6 +80,11 @@ const PerfilRoute = PerfilRouteImport.update({
   path: '/perfil',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PrivacidadeRoute = PrivacidadeRouteImport.update({
+  id: '/privacidade',
+  path: '/privacidade',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const TermosRoute = TermosRouteImport.update({
   id: '/termos',
   path: '/termos',
@@ -137,6 +143,7 @@ export interface FileRoutesByFullPath {
   '/painel': typeof PainelRoute
   '/painel-vendedor': typeof PainelVendedorRoute
   '/perfil': typeof PerfilRoute
+  '/privacidade': typeof PrivacidadeRoute
   '/termos': typeof TermosRoute
   '/admin/avaliacoes': typeof AdminAvaliacoesRoute
   '/admin/configuracoes': typeof AdminConfiguracoesRoute
@@ -158,6 +165,7 @@ export interface FileRoutesByTo {
   '/painel': typeof PainelRoute
   '/painel-vendedor': typeof PainelVendedorRoute
   '/perfil': typeof PerfilRoute
+  '/privacidade': typeof PrivacidadeRoute
   '/termos': typeof TermosRoute
   '/admin/avaliacoes': typeof AdminAvaliacoesRoute
   '/admin/configuracoes': typeof AdminConfiguracoesRoute
@@ -180,6 +188,7 @@ export interface FileRoutesById {
   '/painel': typeof PainelRoute
   '/painel-vendedor': typeof PainelVendedorRoute
   '/perfil': typeof PerfilRoute
+  '/privacidade': typeof PrivacidadeRoute
   '/termos': typeof TermosRoute
   '/admin_/avaliacoes': typeof AdminAvaliacoesRoute
   '/admin_/configuracoes': typeof AdminConfiguracoesRoute
@@ -203,6 +212,7 @@ export interface FileRouteTypes {
     | '/painel'
     | '/painel-vendedor'
     | '/perfil'
+    | '/privacidade'
     | '/termos'
     | '/admin/avaliacoes'
     | '/admin/configuracoes'
@@ -224,6 +234,7 @@ export interface FileRouteTypes {
     | '/painel'
     | '/painel-vendedor'
     | '/perfil'
+    | '/privacidade'
     | '/termos'
     | '/admin/avaliacoes'
     | '/admin/configuracoes'
@@ -245,6 +256,7 @@ export interface FileRouteTypes {
     | '/painel'
     | '/painel-vendedor'
     | '/perfil'
+    | '/privacidade'
     | '/termos'
     | '/admin_/avaliacoes'
     | '/admin_/configuracoes'
@@ -267,6 +279,7 @@ export interface RootRouteChildren {
   PainelRoute: typeof PainelRoute
   PainelVendedorRoute: typeof PainelVendedorRoute
   PerfilRoute: typeof PerfilRoute
+  PrivacidadeRoute: typeof PrivacidadeRoute
   TermosRoute: typeof TermosRoute
   AdminAvaliacoesRoute: typeof AdminAvaliacoesRoute
   AdminConfiguracoesRoute: typeof AdminConfiguracoesRoute
@@ -350,6 +363,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PerfilRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/privacidade': {
+      id: '/privacidade'
+      path: '/privacidade'
+      fullPath: '/privacidade'
+      preLoaderRoute: typeof PrivacidadeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/termos': {
       id: '/termos'
       path: '/termos'
@@ -427,6 +447,7 @@ const rootRouteChildren: RootRouteChildren = {
   PainelRoute: PainelRoute,
   PainelVendedorRoute: PainelVendedorRoute,
   PerfilRoute: PerfilRoute,
+  PrivacidadeRoute: PrivacidadeRoute,
   TermosRoute: TermosRoute,
   AdminAvaliacoesRoute: AdminAvaliacoesRoute,
   AdminConfiguracoesRoute: AdminConfiguracoesRoute,
