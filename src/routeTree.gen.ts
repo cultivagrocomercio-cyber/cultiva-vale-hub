@@ -15,6 +15,7 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as BuscarRouteImport } from './routes/buscar'
 import { Route as CarrinhoRouteImport } from './routes/carrinho'
 import { Route as MeusPedidosRouteImport } from './routes/meus-pedidos'
+import { Route as NotificacoesRouteImport } from './routes/notificacoes'
 import { Route as PainelRouteImport } from './routes/painel'
 import { Route as PainelVendedorRouteImport } from './routes/painel-vendedor'
 import { Route as PerfilRouteImport } from './routes/perfil'
@@ -55,6 +56,11 @@ const CarrinhoRoute = CarrinhoRouteImport.update({
 const MeusPedidosRoute = MeusPedidosRouteImport.update({
   id: '/meus-pedidos',
   path: '/meus-pedidos',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const NotificacoesRoute = NotificacoesRouteImport.update({
+  id: '/notificacoes',
+  path: '/notificacoes',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PainelRoute = PainelRouteImport.update({
@@ -121,6 +127,7 @@ export interface FileRoutesByFullPath {
   '/buscar': typeof BuscarRoute
   '/carrinho': typeof CarrinhoRoute
   '/meus-pedidos': typeof MeusPedidosRoute
+  '/notificacoes': typeof NotificacoesRoute
   '/painel': typeof PainelRoute
   '/painel-vendedor': typeof PainelVendedorRoute
   '/perfil': typeof PerfilRoute
@@ -140,6 +147,7 @@ export interface FileRoutesByTo {
   '/buscar': typeof BuscarRoute
   '/carrinho': typeof CarrinhoRoute
   '/meus-pedidos': typeof MeusPedidosRoute
+  '/notificacoes': typeof NotificacoesRoute
   '/painel': typeof PainelRoute
   '/painel-vendedor': typeof PainelVendedorRoute
   '/perfil': typeof PerfilRoute
@@ -160,6 +168,7 @@ export interface FileRoutesById {
   '/buscar': typeof BuscarRoute
   '/carrinho': typeof CarrinhoRoute
   '/meus-pedidos': typeof MeusPedidosRoute
+  '/notificacoes': typeof NotificacoesRoute
   '/painel': typeof PainelRoute
   '/painel-vendedor': typeof PainelVendedorRoute
   '/perfil': typeof PerfilRoute
@@ -181,6 +190,7 @@ export interface FileRouteTypes {
     | '/buscar'
     | '/carrinho'
     | '/meus-pedidos'
+    | '/notificacoes'
     | '/painel'
     | '/painel-vendedor'
     | '/perfil'
@@ -200,6 +210,7 @@ export interface FileRouteTypes {
     | '/buscar'
     | '/carrinho'
     | '/meus-pedidos'
+    | '/notificacoes'
     | '/painel'
     | '/painel-vendedor'
     | '/perfil'
@@ -219,6 +230,7 @@ export interface FileRouteTypes {
     | '/buscar'
     | '/carrinho'
     | '/meus-pedidos'
+    | '/notificacoes'
     | '/painel'
     | '/painel-vendedor'
     | '/perfil'
@@ -239,6 +251,7 @@ export interface RootRouteChildren {
   BuscarRoute: typeof BuscarRoute
   CarrinhoRoute: typeof CarrinhoRoute
   MeusPedidosRoute: typeof MeusPedidosRoute
+  NotificacoesRoute: typeof NotificacoesRoute
   PainelRoute: typeof PainelRoute
   PainelVendedorRoute: typeof PainelVendedorRoute
   PerfilRoute: typeof PerfilRoute
@@ -294,6 +307,13 @@ declare module '@tanstack/react-router' {
       path: '/meus-pedidos'
       fullPath: '/meus-pedidos'
       preLoaderRoute: typeof MeusPedidosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/notificacoes': {
+      id: '/notificacoes'
+      path: '/notificacoes'
+      fullPath: '/notificacoes'
+      preLoaderRoute: typeof NotificacoesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/painel': {
@@ -383,6 +403,7 @@ const rootRouteChildren: RootRouteChildren = {
   BuscarRoute: BuscarRoute,
   CarrinhoRoute: CarrinhoRoute,
   MeusPedidosRoute: MeusPedidosRoute,
+  NotificacoesRoute: NotificacoesRoute,
   PainelRoute: PainelRoute,
   PainelVendedorRoute: PainelVendedorRoute,
   PerfilRoute: PerfilRoute,
