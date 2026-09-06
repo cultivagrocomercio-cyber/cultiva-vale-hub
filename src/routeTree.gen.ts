@@ -15,9 +15,12 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as BuscarRouteImport } from './routes/buscar'
 import { Route as CarrinhoRouteImport } from './routes/carrinho'
 import { Route as MeusPedidosRouteImport } from './routes/meus-pedidos'
+import { Route as NotificacoesRouteImport } from './routes/notificacoes'
 import { Route as PainelRouteImport } from './routes/painel'
 import { Route as PainelVendedorRouteImport } from './routes/painel-vendedor'
 import { Route as PerfilRouteImport } from './routes/perfil'
+import { Route as PrivacidadeRouteImport } from './routes/privacidade'
+import { Route as TermosRouteImport } from './routes/termos'
 import { Route as AdminAvaliacoesRouteImport } from './routes/admin_.avaliacoes'
 import { Route as AdminConfiguracoesRouteImport } from './routes/admin_.configuracoes'
 import { Route as AdminSolicitacoesRouteImport } from './routes/admin_.solicitacoes'
@@ -57,6 +60,11 @@ const MeusPedidosRoute = MeusPedidosRouteImport.update({
   path: '/meus-pedidos',
   getParentRoute: () => rootRouteImport,
 } as any)
+const NotificacoesRoute = NotificacoesRouteImport.update({
+  id: '/notificacoes',
+  path: '/notificacoes',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const PainelRoute = PainelRouteImport.update({
   id: '/painel',
   path: '/painel',
@@ -70,6 +78,16 @@ const PainelVendedorRoute = PainelVendedorRouteImport.update({
 const PerfilRoute = PerfilRouteImport.update({
   id: '/perfil',
   path: '/perfil',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PrivacidadeRoute = PrivacidadeRouteImport.update({
+  id: '/privacidade',
+  path: '/privacidade',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TermosRoute = TermosRouteImport.update({
+  id: '/termos',
+  path: '/termos',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AdminAvaliacoesRoute = AdminAvaliacoesRouteImport.update({
@@ -121,9 +139,12 @@ export interface FileRoutesByFullPath {
   '/buscar': typeof BuscarRoute
   '/carrinho': typeof CarrinhoRoute
   '/meus-pedidos': typeof MeusPedidosRoute
+  '/notificacoes': typeof NotificacoesRoute
   '/painel': typeof PainelRoute
   '/painel-vendedor': typeof PainelVendedorRoute
   '/perfil': typeof PerfilRoute
+  '/privacidade': typeof PrivacidadeRoute
+  '/termos': typeof TermosRoute
   '/admin/avaliacoes': typeof AdminAvaliacoesRoute
   '/admin/configuracoes': typeof AdminConfiguracoesRoute
   '/admin/solicitacoes': typeof AdminSolicitacoesRoute
@@ -140,9 +161,12 @@ export interface FileRoutesByTo {
   '/buscar': typeof BuscarRoute
   '/carrinho': typeof CarrinhoRoute
   '/meus-pedidos': typeof MeusPedidosRoute
+  '/notificacoes': typeof NotificacoesRoute
   '/painel': typeof PainelRoute
   '/painel-vendedor': typeof PainelVendedorRoute
   '/perfil': typeof PerfilRoute
+  '/privacidade': typeof PrivacidadeRoute
+  '/termos': typeof TermosRoute
   '/admin/avaliacoes': typeof AdminAvaliacoesRoute
   '/admin/configuracoes': typeof AdminConfiguracoesRoute
   '/admin/solicitacoes': typeof AdminSolicitacoesRoute
@@ -160,9 +184,12 @@ export interface FileRoutesById {
   '/buscar': typeof BuscarRoute
   '/carrinho': typeof CarrinhoRoute
   '/meus-pedidos': typeof MeusPedidosRoute
+  '/notificacoes': typeof NotificacoesRoute
   '/painel': typeof PainelRoute
   '/painel-vendedor': typeof PainelVendedorRoute
   '/perfil': typeof PerfilRoute
+  '/privacidade': typeof PrivacidadeRoute
+  '/termos': typeof TermosRoute
   '/admin_/avaliacoes': typeof AdminAvaliacoesRoute
   '/admin_/configuracoes': typeof AdminConfiguracoesRoute
   '/admin_/solicitacoes': typeof AdminSolicitacoesRoute
@@ -181,9 +208,12 @@ export interface FileRouteTypes {
     | '/buscar'
     | '/carrinho'
     | '/meus-pedidos'
+    | '/notificacoes'
     | '/painel'
     | '/painel-vendedor'
     | '/perfil'
+    | '/privacidade'
+    | '/termos'
     | '/admin/avaliacoes'
     | '/admin/configuracoes'
     | '/admin/solicitacoes'
@@ -200,9 +230,12 @@ export interface FileRouteTypes {
     | '/buscar'
     | '/carrinho'
     | '/meus-pedidos'
+    | '/notificacoes'
     | '/painel'
     | '/painel-vendedor'
     | '/perfil'
+    | '/privacidade'
+    | '/termos'
     | '/admin/avaliacoes'
     | '/admin/configuracoes'
     | '/admin/solicitacoes'
@@ -219,9 +252,12 @@ export interface FileRouteTypes {
     | '/buscar'
     | '/carrinho'
     | '/meus-pedidos'
+    | '/notificacoes'
     | '/painel'
     | '/painel-vendedor'
     | '/perfil'
+    | '/privacidade'
+    | '/termos'
     | '/admin_/avaliacoes'
     | '/admin_/configuracoes'
     | '/admin_/solicitacoes'
@@ -239,9 +275,12 @@ export interface RootRouteChildren {
   BuscarRoute: typeof BuscarRoute
   CarrinhoRoute: typeof CarrinhoRoute
   MeusPedidosRoute: typeof MeusPedidosRoute
+  NotificacoesRoute: typeof NotificacoesRoute
   PainelRoute: typeof PainelRoute
   PainelVendedorRoute: typeof PainelVendedorRoute
   PerfilRoute: typeof PerfilRoute
+  PrivacidadeRoute: typeof PrivacidadeRoute
+  TermosRoute: typeof TermosRoute
   AdminAvaliacoesRoute: typeof AdminAvaliacoesRoute
   AdminConfiguracoesRoute: typeof AdminConfiguracoesRoute
   AdminSolicitacoesRoute: typeof AdminSolicitacoesRoute
@@ -296,6 +335,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof MeusPedidosRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/notificacoes': {
+      id: '/notificacoes'
+      path: '/notificacoes'
+      fullPath: '/notificacoes'
+      preLoaderRoute: typeof NotificacoesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/painel': {
       id: '/painel'
       path: '/painel'
@@ -315,6 +361,20 @@ declare module '@tanstack/react-router' {
       path: '/perfil'
       fullPath: '/perfil'
       preLoaderRoute: typeof PerfilRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/privacidade': {
+      id: '/privacidade'
+      path: '/privacidade'
+      fullPath: '/privacidade'
+      preLoaderRoute: typeof PrivacidadeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/termos': {
+      id: '/termos'
+      path: '/termos'
+      fullPath: '/termos'
+      preLoaderRoute: typeof TermosRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/admin_/avaliacoes': {
@@ -383,9 +443,12 @@ const rootRouteChildren: RootRouteChildren = {
   BuscarRoute: BuscarRoute,
   CarrinhoRoute: CarrinhoRoute,
   MeusPedidosRoute: MeusPedidosRoute,
+  NotificacoesRoute: NotificacoesRoute,
   PainelRoute: PainelRoute,
   PainelVendedorRoute: PainelVendedorRoute,
   PerfilRoute: PerfilRoute,
+  PrivacidadeRoute: PrivacidadeRoute,
+  TermosRoute: TermosRoute,
   AdminAvaliacoesRoute: AdminAvaliacoesRoute,
   AdminConfiguracoesRoute: AdminConfiguracoesRoute,
   AdminSolicitacoesRoute: AdminSolicitacoesRoute,

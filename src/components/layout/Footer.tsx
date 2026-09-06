@@ -33,6 +33,12 @@ export function Footer() {
             <li><Link to="/painel" className="hover:text-primary">Vender no Cultiva Vale</Link></li>
             <li><Link to="/meus-pedidos" className="hover:text-primary">Meus pedidos</Link></li>
             <li><Link to="/carrinho" className="hover:text-primary">Carrinho</Link></li>
+            <li><Link to="/notificacoes" className="hover:text-primary">Notificações</Link></li>
+          </ul>
+          <p className="mt-6 text-xs font-bold uppercase tracking-widest text-secondary">Legal</p>
+          <ul className="mt-3 space-y-2 text-sm">
+            <li><Link to="/termos" className="hover:text-primary">Termos de Uso</Link></li>
+            <li><Link to="/privacidade" className="hover:text-primary">Política de Privacidade (LGPD)</Link></li>
           </ul>
           <p className="mt-6 text-xs font-bold uppercase tracking-widest text-secondary">Contato</p>
           <ul className="mt-3 space-y-2 text-sm">

@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Heart, Package, Store, UserRound } from "lucide-react";
+import { Bell, Heart, Package, Store, UserRound } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
@@ -15,11 +15,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { NotificationSettings } from "@/components/NotificationSettings";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 export const Route = createFileRoute("/perfil")({
-  validateSearch: (s: Record<string, unknown>): { aba?: "pedidos" | "favoritos" | "dados" | undefined } => ({
-    aba: s["aba"] === "favoritos" || s["aba"] === "dados" ? s["aba"] : s["aba"] === "pedidos" ? "pedidos" : undefined,
+  validateSearch: (s: Record<string, unknown>): { aba?: "pedidos" | "favoritos" | "dados" | "notificacoes" | undefined } => ({
+    aba: s["aba"] === "favoritos" || s["aba"] === "dados" || s["aba"] === "notificacoes" ? s["aba"] : s["aba"] === "pedidos" ? "pedidos" : undefined,
   }),
   head: () => ({
     meta: [
@@ -101,11 +102,12 @@ function ProfilePage() {
         )}
       </div>
 
-      <Tabs value={aba ?? "pedidos"} onValueChange={(v) => navigate({ to: ".", search: { aba: v as "pedidos" | "favoritos" | "dados" }, replace: true })} className="mt-6">
+      <Tabs value={aba ?? "pedidos"} onValueChange={(v) => navigate({ to: ".", search: { aba: v as "pedidos" | "favoritos" | "dados" | "notificacoes" }, replace: true })} className="mt-6">
         <TabsList className="h-auto flex-wrap rounded-full">
           <TabsTrigger value="pedidos" className="rounded-full"><Package className="mr-1.5 h-4 w-4" /> Pedidos</TabsTrigger>
           <TabsTrigger value="favoritos" className="rounded-full"><Heart className="mr-1.5 h-4 w-4" /> Favoritos</TabsTrigger>
           <TabsTrigger value="dados" className="rounded-full"><UserRound className="mr-1.5 h-4 w-4" /> Meus dados</TabsTrigger>
+          <TabsTrigger value="notificacoes" className="rounded-full"><Bell className="mr-1.5 h-4 w-4" /> Notificações</TabsTrigger>
         </TabsList>
 
         <TabsContent value="pedidos" className="mt-5 space-y-4">
@@ -154,6 +156,10 @@ function ProfilePage() {
             userId={user.id}
             onSaved={refresh}
           />
+        </TabsContent>
+
+        <TabsContent value="notificacoes" className="mt-5">
+          <NotificationSettings userId={user.id} />
         </TabsContent>
       </Tabs>
     </div>
