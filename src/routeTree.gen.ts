@@ -19,6 +19,7 @@ import { Route as NotificacoesRouteImport } from './routes/notificacoes'
 import { Route as PainelRouteImport } from './routes/painel'
 import { Route as PainelVendedorRouteImport } from './routes/painel-vendedor'
 import { Route as PerfilRouteImport } from './routes/perfil'
+import { Route as TermosRouteImport } from './routes/termos'
 import { Route as AdminAvaliacoesRouteImport } from './routes/admin_.avaliacoes'
 import { Route as AdminConfiguracoesRouteImport } from './routes/admin_.configuracoes'
 import { Route as AdminSolicitacoesRouteImport } from './routes/admin_.solicitacoes'
@@ -78,6 +79,11 @@ const PerfilRoute = PerfilRouteImport.update({
   path: '/perfil',
   getParentRoute: () => rootRouteImport,
 } as any)
+const TermosRoute = TermosRouteImport.update({
+  id: '/termos',
+  path: '/termos',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AdminAvaliacoesRoute = AdminAvaliacoesRouteImport.update({
   id: '/admin_/avaliacoes',
   path: '/admin/avaliacoes',
@@ -131,6 +137,7 @@ export interface FileRoutesByFullPath {
   '/painel': typeof PainelRoute
   '/painel-vendedor': typeof PainelVendedorRoute
   '/perfil': typeof PerfilRoute
+  '/termos': typeof TermosRoute
   '/admin/avaliacoes': typeof AdminAvaliacoesRoute
   '/admin/configuracoes': typeof AdminConfiguracoesRoute
   '/admin/solicitacoes': typeof AdminSolicitacoesRoute
@@ -151,6 +158,7 @@ export interface FileRoutesByTo {
   '/painel': typeof PainelRoute
   '/painel-vendedor': typeof PainelVendedorRoute
   '/perfil': typeof PerfilRoute
+  '/termos': typeof TermosRoute
   '/admin/avaliacoes': typeof AdminAvaliacoesRoute
   '/admin/configuracoes': typeof AdminConfiguracoesRoute
   '/admin/solicitacoes': typeof AdminSolicitacoesRoute
@@ -172,6 +180,7 @@ export interface FileRoutesById {
   '/painel': typeof PainelRoute
   '/painel-vendedor': typeof PainelVendedorRoute
   '/perfil': typeof PerfilRoute
+  '/termos': typeof TermosRoute
   '/admin_/avaliacoes': typeof AdminAvaliacoesRoute
   '/admin_/configuracoes': typeof AdminConfiguracoesRoute
   '/admin_/solicitacoes': typeof AdminSolicitacoesRoute
@@ -194,6 +203,7 @@ export interface FileRouteTypes {
     | '/painel'
     | '/painel-vendedor'
     | '/perfil'
+    | '/termos'
     | '/admin/avaliacoes'
     | '/admin/configuracoes'
     | '/admin/solicitacoes'
@@ -214,6 +224,7 @@ export interface FileRouteTypes {
     | '/painel'
     | '/painel-vendedor'
     | '/perfil'
+    | '/termos'
     | '/admin/avaliacoes'
     | '/admin/configuracoes'
     | '/admin/solicitacoes'
@@ -234,6 +245,7 @@ export interface FileRouteTypes {
     | '/painel'
     | '/painel-vendedor'
     | '/perfil'
+    | '/termos'
     | '/admin_/avaliacoes'
     | '/admin_/configuracoes'
     | '/admin_/solicitacoes'
@@ -255,6 +267,7 @@ export interface RootRouteChildren {
   PainelRoute: typeof PainelRoute
   PainelVendedorRoute: typeof PainelVendedorRoute
   PerfilRoute: typeof PerfilRoute
+  TermosRoute: typeof TermosRoute
   AdminAvaliacoesRoute: typeof AdminAvaliacoesRoute
   AdminConfiguracoesRoute: typeof AdminConfiguracoesRoute
   AdminSolicitacoesRoute: typeof AdminSolicitacoesRoute
@@ -337,6 +350,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PerfilRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/termos': {
+      id: '/termos'
+      path: '/termos'
+      fullPath: '/termos'
+      preLoaderRoute: typeof TermosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/admin_/avaliacoes': {
       id: '/admin_/avaliacoes'
       path: '/admin/avaliacoes'
@@ -407,6 +427,7 @@ const rootRouteChildren: RootRouteChildren = {
   PainelRoute: PainelRoute,
   PainelVendedorRoute: PainelVendedorRoute,
   PerfilRoute: PerfilRoute,
+  TermosRoute: TermosRoute,
   AdminAvaliacoesRoute: AdminAvaliacoesRoute,
   AdminConfiguracoesRoute: AdminConfiguracoesRoute,
   AdminSolicitacoesRoute: AdminSolicitacoesRoute,
